@@ -43,12 +43,21 @@ window.addEventListener("load", function() {
     };
 
     var socket = io();
-	window.player1_controls_blinky = false;
+	socket.emit('game-ready');
+	// Global flags for player control
+    window.player_controls_blinky = false;
+    window.player_controls_pinky = false;
+    window.player_controls_inky = false;
+    window.player_controls_clyde = false;
     socket.on('player-join', function(ghostName) {
         var ghost = ghostMap[ghostName];
         if (ghost) {
             console.log('Player took control of ' + ghostName);
             ghost.ai = false;
+			if (ghostName === 'blinky') window.player_controls_blinky = true;
+            if (ghostName === 'pinky') window.player_controls_pinky = true;
+            if (ghostName === 'inky') window.player_controls_inky = true;
+            if (ghostName === 'clyde') window.player_controls_clyde = true;
         }
     });
 
@@ -57,6 +66,10 @@ window.addEventListener("load", function() {
         if (ghost) {
             console.log('AI took control of ' + ghostName);
             ghost.ai = true;
+			if (ghostName === 'blinky') window.player_controls_blinky = false;
+            if (ghostName === 'pinky') window.player_controls_pinky = false;
+            if (ghostName === 'inky') window.player_controls_inky = false;
+            if (ghostName === 'clyde') window.player_controls_clyde = false;
             ghost.clearInputDir(); // Clear any lingering manual input
         }
     });

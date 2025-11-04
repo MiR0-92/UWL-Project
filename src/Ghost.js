@@ -359,9 +359,19 @@ Ghost.prototype.steer = function() {
 
         // 3. NEW: Check if we should hand control to a player
         //    This only happens if the ghost is GHOST_OUTSIDE.
-        if (this.mode == GHOST_OUTSIDE) {
+            if (this.mode == GHOST_OUTSIDE) {
             var shouldBePlayerControlled = false;
-            if (this === blinky && window.player1_controls_blinky) {
+            if (this === blinky && window.player_controls_blinky) {
+                shouldBePlayerControlled = true;
+            }
+            // (add else-ifs for pinky, inky, clyde here later) <-- We are doing this now!
+            else if (this === pinky && window.player_controls_pinky) {
+                shouldBePlayerControlled = true;
+            }
+            else if (this === inky && window.player_controls_inky) {
+                shouldBePlayerControlled = true;
+            }
+            else if (this === clyde && window.player_controls_clyde) {
                 shouldBePlayerControlled = true;
             }
             // (add else-ifs for pinky, inky, clyde here later)

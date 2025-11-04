@@ -4,80 +4,89 @@
   <title>Pacman Controller</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
-    body { 
-      margin: 0; 
-      padding: 20px; 
-      touch-action: manipulation; 
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh; /* Use 100% viewport height */
+      overflow: hidden; /* Prevents scrollbars */
       background: #111;
       color: white;
       text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      /* Prevents text selection and double-tap zoom */
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
     }
-    .dpad {
-    display: grid;
-    grid-template-areas: 
-        ". up ."
-        "left . right"
-        ". down .";
-    grid-gap: 0px; /* Minimal gap */
-    margin: 0;
-    padding: 60px;
-    background: #111; /* Dark background for contrast */
-    border-radius: 50px; /* Circular boundary */
-}
 
-.dpad button {
-    width: 85px;
-    height: 85px;
-    border: none;
-    background: #333;
-    color: #ff0;
-    font-size: 30px;
-    font-weight: bold;
-    border-radius: 50%;
-    box-shadow: 
-        0 0 0 2px #111, /* Creates overlap illusion */
-        0 3px 0 rgba(0,0,0,0.3);
-    margin: -5px; /* Negative margin makes them overlap */
-    transition: all 0.1s;
-    position: relative; /* For z-index */
-    z-index: 1;
-}
+    #info {
+      padding-top: 5vh; /* 5% of viewport height */
+    }
+    
+    h1 {
+      font-size: 7vw; /* Responsive font size */
+      margin: 0 0 1vh 0;
+    }
 
-/* Direction-specific positioning */
-#up { 
-    grid-area: up; 
-    margin-bottom: -10px; /* Extra overlap for up */
-}
-#left { 
-    grid-area: left; 
-    margin-right: -10px; /* Extra overlap for left */
-}
-#right { 
-    grid-area: right; 
-    margin-left: -10px; /* Extra overlap for right */
-}
-#down { 
-    grid-area: down; 
-    margin-top: -10px; /* Extra overlap for down */
-}
+    #status {
+      font-weight: bold;
+    }
 
-.dpad button:active {
-    background: #ff0;
-    color: #000;
-    transform: scale(0.95);
-    z-index: 2; /* Pressed button appears above others */
-}
+    /* This container holds the joystick visuals */
+    #joystick-container {
+      position: absolute;
+      /* Position it at the bottom-center */
+      bottom: 10vh; /* 10% from the bottom */
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* The outer "base" of the joystick */
+    #joystick-base {
+      position: relative;
+      /* 40% of the smallest screen dimension */
+      width: 40vmin;
+      height: 40vmin;
+      /* Skyblue color with transparency */
+      background: rgba(135, 206, 235, 0.4); 
+      border: 3px solid #87CEEB; /* Solid skyblue border */
+      border-radius: 50%;
+      display: block; /* Always visible */
+    }
+
+    /* The inner "stick" that moves */
+    #joystick-stick {
+      position: absolute;
+      width: 20vmin;
+      height: 20vmin;
+      /* Azure blue color */
+      background: #007FFF;
+      border: 2px solid rgba(255, 255, 255, 0.5); /* White border for pop */
+      border-radius: 50%;
+      display: block; /* Always visible */
+      
+      /* Center it */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      
+      /* Add a small transition for when it snaps back */
+      transition: transform 0.05s linear;
+    }
   </style>
 </head>
 <body>
-  <h1>PACMAN CONTROLLER</h1>
-  <p>Connected to: <span id="status">Disconnected</span></p>
+
+  <div id="info">
+    <h1>PACMAN CONTROLLER</h1>
+    <p>Connected to: <span id="status">Disconnected</span></p>
+  </div>
   
-  <div class="dpad">
-    <button id="up">↑</button>
-    <button id="left">←</button>
-    <button id="right">→</button>
-    <button id="down">↓</button>
+  <div id="joystick-container">
+    <div id="joystick-base">
+      <div id="joystick-stick"></div>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -85,10 +94,21 @@
     const socket = io();
     const statusEl = document.getElementById('status');
     
-    // Connection status
+    const base = document.getElementById('joystick-base');
+    const stick = document.getElementById('joystick-stick');
+
+    // --- State Variables ---
+    let baseCenterX, baseCenterY;
+    let maxDistance;
+    let deadZone;
+    let currentDirection = null;
+    let activeTouchId = null;
+
+    // --- Connection Status ---
     socket.on('connect', () => {
       statusEl.textContent = 'Connected!';
       statusEl.style.color = 'lime';
+      socket.emit('controller-ready');
     });
     
     socket.on('disconnect', () => {
@@ -96,32 +116,116 @@
       statusEl.style.color = 'red';
     });
 
-    // Button controls
+    // --- Socket Emitter ---
     const sendDirection = (dir, pressed) => {
-      socket.emit('control', { 
-        direction: dir, 
-        pressed: pressed 
-      });
+      if (dir) {
+        socket.emit('control', { 
+          direction: dir, 
+          pressed: pressed 
+        });
+      }
     };
 
-    // Touch events for mobile
-    ['up', 'left', 'right', 'down'].forEach(dir => {
-      const btn = document.getElementById(dir);
+    // --- Helper Functions ---
+    // Calculates the dominant direction from the joystick deltas
+    function getDirection(dx, dy) {
+      if (Math.abs(dx) < deadZone && Math.abs(dy) < deadZone) {
+        return null; // In the dead zone
+      }
+      if (Math.abs(dx) > Math.abs(dy)) {
+        return (dx > 0) ? 'right' : 'left';
+      } else {
+        return (dy > 0) ? 'down' : 'up';
+      }
+    }
+
+    // Function to calculate joystick geometry
+    function initializeJoystick() {
+      const baseRect = base.getBoundingClientRect();
+      baseCenterX = baseRect.left + baseRect.width / 2;
+      baseCenterY = baseRect.top + baseRect.height / 2;
+      // The stick can move from its center to the edge of the base
+      maxDistance = base.offsetWidth / 2 - stick.offsetWidth / 2;
+      deadZone = maxDistance * 0.2; // 20% deadzone
+    }
+
+    // --- Main Movement Logic ---
+    function moveStick(clientX, clientY) {
+      const dx = clientX - baseCenterX;
+      const dy = clientY - baseCenterY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
       
-      btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        btn.style.background = 'yellow';
-        btn.style.color = 'black';
-        sendDirection(dir, true);
-      });
+      // Calculate the new stick position, clamped to the base
+      const stickDistance = Math.min(distance, maxDistance);
+      const stickPosX = Math.cos(angle) * stickDistance;
+      const stickPosY = Math.sin(angle) * stickDistance;
+
+      // Move the visual stick
+      stick.style.transform = `translate(calc(-50% + ${stickPosX}px), calc(-50% + ${stickPosY}px))`;
+
+      // --- Send commands to server ---
+      const newDirection = getDirection(dx, dy);
+
+      if (newDirection !== currentDirection) {
+        // A new direction has been triggered
+        if (currentDirection) {
+          sendDirection(currentDirection, false); // Let go of the old direction
+        }
+        sendDirection(newDirection, true); // Press the new direction
+        currentDirection = newDirection;
+      }
+    }
+
+    // --- Touch Event Handlers ---
+    document.body.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      // Only track the first finger down
+      if (activeTouchId !== null) return;
       
-      btn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        btn.style.background = '#333';
-        btn.style.color = 'white';
-        sendDirection(dir, false);
-      });
-    });
+      const touch = e.changedTouches[0];
+      activeTouchId = touch.identifier;
+      moveStick(touch.clientX, touch.clientY); // Move stick on initial press
+    }, { passive: false });
+
+    document.body.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (activeTouchId === null) return;
+
+      // Find the finger that started this touch
+      const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
+      if (!touch) return;
+
+      moveStick(touch.clientX, touch.clientY);
+    }, { passive: false });
+
+    function onTouchEnd(e) {
+      e.preventDefault();
+      if (activeTouchId === null) return;
+
+      // Check if the touch that was released is the one we are tracking
+      const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
+      if (!touch) return;
+
+      // Reset
+      activeTouchId = null;
+      stick.style.transform = 'translate(-50%, -50%)'; // Snap back to center
+      
+      if (currentDirection) {
+        sendDirection(currentDirection, false); // "Release" the button
+        currentDirection = null;
+      }
+    }
+
+    document.body.addEventListener('touchend', onTouchEnd);
+    document.body.addEventListener('touchcancel', onTouchEnd);
+
+    // Recalculate geometry on resize (like screen rotation)
+    window.addEventListener('resize', initializeJoystick);
+
+    // Initial setup
+    initializeJoystick();
+
   </script>
 </body>
 </html>
