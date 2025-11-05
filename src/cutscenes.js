@@ -1074,7 +1074,7 @@ var cookieCutscene2 = (function() {
 
 var cutscenes = [
     [pacmanCutscene1], // GAME_PACMAN
-    [mspacmanCutscene1, mspacmanCutscene2], // GAME_MSPACMAN
+    [cookieCutscene1, cookieCutscene2], // GAME_MSPACMAN
     [cookieCutscene1, cookieCutscene2], // GAME_COOKIE
     [mspacmanCutscene1, mspacmanCutscene2], // GAME_OTTO
 ];
@@ -1110,11 +1110,11 @@ var triggerCutsceneAtEndLevel = function() {
     }
     else if (gameMode == GAME_MSPACMAN || gameMode == GAME_OTTO) {
         if (level == 2) {
-            playCutScene(mspacmanCutscene1, readyNewState);
+            playCutScene(cookieCutscene1, readyNewState);
             return true;
         }
         else if (level == 5) {
-            playCutScene(mspacmanCutscene2, readyNewState);
+            playCutScene(cookieCutscene2, readyNewState);
             return true;
         }
     }

@@ -1,8 +1,3 @@
-A Multiplayer Game that allows dynamic join/exit and uses mobile devices as a controller. (Currently working in progress).
-
-
-
-Special Thanks to Calvinjc and Shaun Williams for providing both the smart AI and the Pac-Man game.
 # Pacman AI
 
 I wanted to see if I could create an automated Pacman player that can play the game intelligently on it's own.
@@ -32,4 +27,3 @@ Render a visualization of the route that Pacman has selected.  This allows you t
 
 #### Version 5.0
 Improve recursive searching by calculating future ghost positions based on the hypothetical Pacman future position, and various other value adjustment changes.  Make hunting dots more efficient and don't waste time twitching near an energizer when no ghosts are around.  Start making better use of the tunnels!  Target scared ghosts while running away from live ghosts.  Allow user to choose their own settings instead of having them hard coded!  Create a new mode where users can play the game themselves while still seeing the AI's recommended route!! This mode can be selected in the settings or can be toggled mid-game by pressing the Spacebar key.  This mode is only compatible/enabled on desktop browsers due to conflicts with swipe actions on mobile.
-

@@ -961,7 +961,7 @@ var initRenderer = function(){
             var draw = function(pixel, dirEnum, steps) {
                 var frame = pacman.getAnimFrame(pacman.getStepFrame(steps));
                 var func = getPlayerDrawFunc();
-                func(ctx, pixel.x, pixel.y, dirEnum, frame, true);
+                func(ctx, pixel.x, pixel.y, dirEnum, frame, true, undefined, undefined, undefined);
             };
 
             vcr.drawHistory(ctx, function(t) {
@@ -1021,7 +1021,7 @@ var initRenderer = function(){
                 var maxAngle = Math.PI*5;
                 var step = (Math.PI/4) / maxAngle; // 45 degree steps
                 var angle = Math.floor(t/step)*step*maxAngle;
-                drawMsPacmanSprite(ctx, pacman.pixel.x, pacman.pixel.y, pacman.dirEnum, frame, angle);
+                drawCookiemanSprite(ctx, pacman.pixel.x, pacman.pixel.y, pacman.dirEnum, frame, false, angle);
             }
             else if (gameMode == GAME_COOKIE) {
                 // spin 540 degrees
