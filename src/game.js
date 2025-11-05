@@ -105,7 +105,7 @@ var getGhostDrawFunc = function(mode) {
     if (mode == GAME_OTTO) {
         return atlas.drawMonsterSprite;
     }
-    else if (mode == GAME_COOKIE) {
+    else if (mode == GAME_COOKIE || mode == GAME_MSPACMAN) {
         return atlas.drawMuppetSprite;
     }
     else {
@@ -124,7 +124,8 @@ var getPlayerDrawFunc = function(mode) {
         return atlas.drawPacmanSprite;
     }
     else if (mode == GAME_MSPACMAN) {
-        return atlas.drawMsPacmanSprite;
+        // return atlas.drawMsPacmanSprite; //uncomment to use original ms pacman sprite.
+        return drawCookiemanSprite;
     }
     else if (mode == GAME_COOKIE) {
         //return atlas.drawCookiemanSprite;

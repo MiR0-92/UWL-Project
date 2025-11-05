@@ -204,7 +204,7 @@ var initRenderer = function(){
             ctx.textBaseline = "bottom";
             ctx.textAlign = "right";
             ctx.fillStyle = "#333";
-            ctx.fillText(Math.floor(executive.getFps())+" FPS", screenWidth, screenHeight);
+           // ctx.fillText(Math.floor(executive.getFps())+" FPS", screenWidth, screenHeight); //uncomment to display FPS
 
             // translate to map space
             ctx.translate(mapMargin+mapPad, mapMargin+mapPad);
@@ -755,7 +755,8 @@ var initRenderer = function(){
                     }
                     else if (gameMode == GAME_MSPACMAN) {
                         for (i=0; i<lives; i++) {
-                            drawMsPacmanSprite(bgCtx, 0,0, DIR_RIGHT, 1);
+                            // drawMsPacmanSprite(bgCtx, 0,0, DIR_RIGHT, 1); uncomment to use ms pacman life counter sprites
+                            drawCookiemanSprite(bgCtx, 0,0, DIR_RIGHT, 1, false)
                             bgCtx.translate(2*tileSize,0);
                         }
                     }

@@ -20,7 +20,7 @@ var hud = (function(){
             }
         },
         draw: function(ctx) {
-            inGameMenu.draw(ctx);
+            //inGameMenu.draw(ctx); //enable-disable menu shown on the screen
             vcr.draw(ctx);
         },
         isValidState: function() {

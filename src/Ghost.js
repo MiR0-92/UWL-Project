@@ -91,7 +91,8 @@ Ghost.prototype.reset = function () {
   this.mode = this.startMode;
   this.scared = false;
   this.stopped = false;
-
+  this.ai = true;
+  
   this.savedSigReverse = {};
   this.savedSigLeaveHome = {};
   this.savedMode = {};

@@ -253,12 +253,12 @@ var getMsPacActColor = function(act) {
     if (act >= 4) {
         return [
             {
-                wallFillColor: "#ffb8ff",
+                wallFillColor: "#FF0000",
                 wallStrokeColor: "#FFFF00",
                 pelletColor: "#00ffff",
             },
             {
-                wallFillColor: "#FFB8AE",
+                wallFillColor: "#b70092ff",
                 wallStrokeColor: "#FF0000",
                 pelletColor: "#dedeff",
             },
@@ -338,8 +338,8 @@ var mapMsPacman1 = new Map(28, 36, (
     "____________________________"));
 
 mapMsPacman1.name = "Ms. Pac-Man 1";
-mapMsPacman1.wallFillColor = "#FFB8AE";
-mapMsPacman1.wallStrokeColor = "#FF0000";
+mapMsPacman1.wallFillColor = "#ff0000ff";
+mapMsPacman1.wallStrokeColor = "#ffb851";
 mapMsPacman1.pelletColor = "#dedeff";
 mapMsPacman1.fruitPaths = {
              "entrances": [

@@ -53,7 +53,15 @@ window.addEventListener("load", function() {
         var ghost = ghostMap[ghostName];
         if (ghost) {
             console.log('Player took control of ' + ghostName);
-            ghost.ai = false;
+            
+            // Check if ghost is outside the base.
+            // If it's not (i.e., it's respawning), let the AI keep control.
+            // The steering logic in Ghost.js will return control to the
+            // player once the ghost exits the base.
+            if (ghost.mode === GHOST_OUTSIDE) {
+                ghost.ai = false;
+            }
+            
 			if (ghostName === 'blinky') window.player_controls_blinky = true;
             if (ghostName === 'pinky') window.player_controls_pinky = true;
             if (ghostName === 'inky') window.player_controls_inky = true;
