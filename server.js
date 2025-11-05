@@ -27,51 +27,90 @@ app.get('/controller', (req, res) => {
     });
 });
 
-let players = {}; // Stores { socket.id: ghostName }
 let gameSocket = null;
 const GHOST_NAMES = ['blinky', 'pinky', 'inky', 'clyde'];
+// New players object: stores player data keyed by ghost name
+// null means the ghost is AI-controlled
+let players = {
+    'blinky': null,
+    'pinky': null,
+    'inky': null,
+    'clyde': null
+};
+
+// Helper function to get the current player status
+function getPlayerStatus() {
+    const status = {};
+    for (const ghostName of GHOST_NAMES) {
+        if (players[ghostName]) {
+            status[ghostName] = { name: players[ghostName].name };
+        } else {
+            status[ghostName] = null;
+        }
+    }
+    return status;
+}
 
 // Socket.io connection logic
 io.on('connection', (socket) => {
     console.log(`A user connected: ${socket.id}`);
 
+    // Immediately send the current ghost status to the new connection
+    socket.emit('ghost-status', getPlayerStatus());
+
     socket.on('controller-ready', () => {
-        // Find first available ghost
-        let assignedGhost = null;
-        const takenGhosts = Object.values(players);
-        for (const ghostName of GHOST_NAMES) {
-            if (!takenGhosts.includes(ghostName)) {
-                assignedGhost = ghostName;
-                break;
-            }
+        // This is sent when a controller loads, just send them the latest status
+        console.log(`Controller ${socket.id} is ready, sending status.`);
+        socket.emit('ghost-status', getPlayerStatus());
+    });
+    
+    socket.on('join-request', (data) => {
+        const { name, ghost } = data;
+
+        if (!ghost || !GHOST_NAMES.includes(ghost)) {
+            console.log(`Controller ${socket.id} sent invalid join request.`);
+            socket.emit('join-error', { message: 'Invalid ghost selected.' });
+            return;
         }
 
-        if (assignedGhost) {
-            players[socket.id] = assignedGhost;
-            console.log(`Controller ${socket.id} assigned to ${assignedGhost}`);
-            // Tell the game a player joined
-            if (gameSocket) {
-                gameSocket.emit('player-join', assignedGhost);
-            }
+        if (players[ghost]) {
+            // Ghost is already taken
+            console.log(`Controller ${socket.id} tried to take ${ghost}, but it's held by ${players[ghost].name}`);
+            socket.emit('join-error', { message: `${ghost} is already taken by ${players[ghost].name}!` });
         } else {
-            console.log(`Controller ${socket.id} tried to join, but no ghosts are available.`);
-            // You could optionally tell the controller it's a spectator
-            // socket.emit('spectate', 'All ghosts are taken.');
+            // Assign ghost to this player
+            players[ghost] = { id: socket.id, name: name };
+            socket.ghostName = ghost; // Store a reference on the socket for quick lookup
+            
+            console.log(`Controller ${socket.id} (${name}) successfully joined as ${ghost}`);
+            
+            // 1. Tell the controller it was successful
+            socket.emit('join-success', { name: name, ghost: ghost });
+
+            // 2. Tell the game a player joined (using the *existing* event)
+            if (gameSocket) {
+                gameSocket.emit('player-join', ghost);
+            }
+
+            // 3. Tell *all* controllers about the new status
+            io.emit('ghost-status', getPlayerStatus());
         }
     });
 
     socket.on('game-ready', () => {
         console.log(`Game client connected: ${socket.id}`);
         gameSocket = socket;
-        // Tell the game about all controllers that are already connected
-        for (const [id, ghostName] of Object.entries(players)) {
-            console.log(`Notifying game of existing player: ${ghostName}`);
-            gameSocket.emit('player-join', ghostName);
+        // Tell the game about all controllers that are *already* connected
+        for (const ghostName of GHOST_NAMES) {
+            if (players[ghostName]) {
+                console.log(`Notifying game of existing player: ${ghostName}`);
+                gameSocket.emit('player-join', ghostName);
+            }
         }
     });
     
     socket.on('control', (data) => {
-        const ghostName = players[socket.id]; // Find which ghost this socket controls
+        const ghostName = socket.ghostName; // Find which ghost this socket controls
         if (ghostName && gameSocket) {
             // Pass the control data to the game, tagging it for the correct ghost
             data.ghost = ghostName;
@@ -87,15 +126,19 @@ io.on('connection', (socket) => {
             gameSocket = null;
         }
 
-        const ghostName = players[socket.id];
+        const ghostName = socket.ghostName; // Get ghost name from the socket
         if (ghostName) {
             // This was a player
-            console.log(`Player for ${ghostName} disconnected. ${ghostName} is now AI controlled.`);
-            delete players[socket.id];
-            // Tell the game the player left
+            console.log(`Player ${players[ghostName].name} for ${ghostName} disconnected. ${ghostName} is now AI controlled.`);
+            players[ghostName] = null; // Free up the ghost
+            
+            // 1. Tell the game the player left (using the *existing* event)
             if (gameSocket) {
                 gameSocket.emit('player-leave', ghostName);
             }
+
+            // 2. Tell *all* controllers the ghost is now available
+            io.emit('ghost-status', getPlayerStatus());
         }
     });
 });

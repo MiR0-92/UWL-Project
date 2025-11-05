@@ -14,111 +14,365 @@
       color: white;
       text-align: center;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      /* Prevents text selection and double-tap zoom */
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
     }
 
-    #info {
-      padding-top: 5vh; /* 5% of viewport height */
-    }
-    
     h1 {
-      font-size: 7vw; /* Responsive font size */
+      font-size: 7vw;
       margin: 0 0 1vh 0;
     }
 
-    #status {
+    /* --- Container Styling --- */
+    .container {
+      width: 100%;
+      height: 100%; /* Make container fill the vh */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-sizing: border-box; /* Important for padding */
+    }
+
+    #lobby-container {
+      /* This will now vertically center the content */
+      justify-content: center;
+      padding: 2vh 0;
+    }
+
+    #controller-container {
+      display: none; /* Hidden by default */
+      flex-direction: column;
+      justify-content: flex-start; /* Align items to the top */
+      height: 100%; /* Ensure it fills the viewport height */
+      padding: 5vh 0; /* Top and bottom padding */
+      box-sizing: border-box;
+    }
+
+    /* --- Lobby Styling --- */
+    #lobby-container h1 {
+      font-size: 8vw;
+      color: #FFFF00; /* Pac-Man Yellow */
+    }
+
+    #ghost-selector {
+      display: flex;
+      flex-direction: column; /* Stack image and text vertically */
+      align-items: center;
+      justify-content: center;
+      margin: 2vh 0;
+    }
+    
+    .ghost-selector-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .arrow-btn {
+      font-size: 15vmin;
+      color: #fff;
+      background: none;
+      border: none;
+      padding: 0 5vw;
+      cursor: pointer;
+    }
+    .arrow-btn:disabled {
+      color: #444;
+    }
+
+    #ghost-image-lobby {
+      width: 45vmin;
+      height: 45vmin;
+      image-rendering: pixelated; /* Keeps the pixel art sharp */
+    }
+
+    #ghost-name-lobby {
+      font-size: 5vw;
+      color: #fff;
+      margin-top: 1.5vh;
       font-weight: bold;
+      text-transform: capitalize;
     }
 
-    /* This container holds the joystick visuals */
+    #player-name-lobby {
+      width: 70vw;
+      max-width: 300px;
+      padding: 12px;
+      font-size: 5vw;
+      text-align: center;
+      background: #333;
+      color: #fff;
+      border: 2px solid #555;
+      border-radius: 8px;
+      margin-bottom: 2vh;
+    }
+
+    #join-button {
+      width: 70vw;
+      max-width: 300px;
+      padding: 15px;
+      font-size: 6vw;
+      font-weight: bold;
+      color: #111;
+      background: #87CEEB; /* Skyblue */
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #join-button:disabled {
+      background: #555;
+      color: #888;
+    }
+
+    #lobby-status {
+      margin-top: 2vh;
+      color: #ff4444;
+      font-size: 4vw;
+      /* This ensures it doesn't push content up if it's empty */
+      height: 1.2em; 
+    }
+
+    /* --- Controller View Styling (Re-ordered) --- */
+    #player-name-ingame {
+      font-size: 7vw;
+      font-weight: bold;
+      color: #87CEEB; /* Skyblue */
+      margin-bottom: 1vh; /* Add a little space */
+    }
+
+    #ghost-image-ingame {
+      width: 40vmin; /* 4x larger (as requested) */
+      height: 40vmin; /* 4x larger (as requested) */
+      image-rendering: pixelated;
+    }
+    
+    #playing-as-text {
+      font-size: 5vw;
+      margin: 1vh 0 0 0; /* Add a little space */
+      text-transform: capitalize;
+    }
+
     #joystick-container {
-      position: absolute;
-      /* Position it at the bottom-center */
-      bottom: 10vh; /* 10% from the bottom */
-      left: 50%;
-      transform: translateX(-50%);
+      position: relative;
+      /* THIS IS THE FIX: */
+      margin-top: auto; /* Pushes joystick & status down */
+      margin-bottom: 3vh; /* Space between joystick and status */
     }
 
-    /* The outer "base" of the joystick */
     #joystick-base {
       position: relative;
-      /* 40% of the smallest screen dimension */
       width: 40vmin;
       height: 40vmin;
-      /* Skyblue color with transparency */
       background: rgba(135, 206, 235, 0.4); 
-      border: 3px solid #87CEEB; /* Solid skyblue border */
+      border: 3px solid #87CEEB;
       border-radius: 50%;
-      display: block; /* Always visible */
     }
 
-    /* The inner "stick" that moves */
     #joystick-stick {
       position: absolute;
       width: 20vmin;
       height: 20vmin;
-      /* Azure blue color */
       background: #007FFF;
-      border: 2px solid rgba(255, 255, 255, 0.5); /* White border for pop */
+      border: 2px solid rgba(255, 255, 255, 0.5);
       border-radius: 50%;
-      display: block; /* Always visible */
-      
-      /* Center it */
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      
-      /* Add a small transition for when it snaps back */
       transition: transform 0.05s linear;
     }
+
+    #connection-status {
+      font-size: 4vw;
+      font-weight: bold;
+      margin: 0;
+      /* This item will be at the bottom, just above the 5vh padding */
+    }
+
   </style>
 </head>
 <body>
 
-  <div id="info">
-    <h1>PACMAN CONTROLLER</h1>
-    <p>Connected to: <span id="status">Disconnected</span></p>
-  </div>
-  
-  <div id="joystick-container">
-    <div id="joystick-base">
-      <div id="joystick-stick"></div>
+  <div id="lobby-container" class="container">
+    <h1>CHOOSE YOUR GHOST</h1>
+    
+    <input type="text" id="player-name-lobby" placeholder="Enter Your Name">
+
+    <div id="ghost-selector">
+      <div class="ghost-selector-row">
+        <button id="prev-ghost" class="arrow-btn">&lt;</button>
+        <img id="ghost-image-lobby" src="/images/blinky.png" alt="Selected Ghost">
+        <button id="next-ghost" class="arrow-btn">&gt;</button>
+      </div>
+      <p id="ghost-name-lobby">playing as Blinky</p>
     </div>
+    
+    <button id="join-button">JOIN GAME</button>
+
+    <p id="lobby-status"></p>
+  </div>
+
+  <div id="controller-container" class="container">
+    
+    <span id="player-name-ingame">Player</span>
+    
+    <img id="ghost-image-ingame" src="/images/blinky.png">
+    
+    <p id="playing-as-text">playing as <span id="ghost-name-ingame">Blinky</span></p>
+
+    <div id="joystick-container">
+      <div id="joystick-base">
+        <div id="joystick-stick"></div>
+      </div>
+    </div>
+    
+    <p id="connection-status">Status: <span id="status-text">Connecting...</span></p>
+
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-    const statusEl = document.getElementById('status');
-    
+
+    // --- Page Elements ---
+    const lobbyContainer = document.getElementById('lobby-container');
+    const controllerContainer = document.getElementById('controller-container');
+    const lobbyStatus = document.getElementById('lobby-status');
+
+    // Lobby Elements
+    const prevGhostBtn = document.getElementById('prev-ghost');
+    const nextGhostBtn = document.getElementById('next-ghost');
+    const ghostImageLobby = document.getElementById('ghost-image-lobby');
+    const ghostNameLobby = document.getElementById('ghost-name-lobby');
+    const playerNameInput = document.getElementById('player-name-lobby');
+    const joinButton = document.getElementById('join-button');
+
+    // Controller Elements
+    const playerNameIngame = document.getElementById('player-name-ingame');
+    const ghostImageIngame = document.getElementById('ghost-image-ingame');
+    const ghostNameIngame = document.getElementById('ghost-name-ingame');
+    const statusText = document.getElementById('status-text');
     const base = document.getElementById('joystick-base');
     const stick = document.getElementById('joystick-stick');
 
     // --- State Variables ---
+    const GHOSTS = [
+      { name: 'blinky', path: '/images/blinky.png' },
+      { name: 'pinky', path: '/images/pinky.png' },
+      { name: 'inky', path: '/images/inky.png' },
+      { name: 'clyde', path: '/images/clyde.png' }
+    ];
+    let currentGhostIndex = 0;
+    let takenGhosts = {}; // { blinky: { name: "Player1" }, pinky: null, ... }
+    let myGhostName = null;
+
     let baseCenterX, baseCenterY;
     let maxDistance;
     let deadZone;
     let currentDirection = null;
     let activeTouchId = null;
 
-    // --- Connection Status ---
+    // --- View Switching ---
+    function showLobby() {
+      lobbyContainer.style.display = 'flex';
+      controllerContainer.style.display = 'none';
+      lobbyStatus.textContent = '';
+      updateGhostSelector(); // Re-check ghost availability
+    }
+
+    function showController(player) {
+      lobbyContainer.style.display = 'none';
+      controllerContainer.style.display = 'flex';
+      
+      myGhostName = player.ghost;
+      const ghostData = GHOSTS.find(g => g.name === player.ghost);
+      
+      // Populate player info
+      playerNameIngame.textContent = player.name;
+      ghostImageIngame.src = ghostData.path;
+      ghostNameIngame.textContent = player.ghost;
+
+      // We MUST re-initialize the joystick here, *after* it becomes visible
+      // Otherwise, getBoundingClientRect() returns zeros.
+      // A small delay ensures the browser has rendered it.
+      setTimeout(initializeJoystick, 50);
+    }
+
+    // --- Lobby Logic ---
+    function updateGhostSelector() {
+      const ghost = GHOSTS[currentGhostIndex];
+      ghostImageLobby.src = ghost.path;
+      ghostNameLobby.textContent = `playing as ${ghost.name}`; // Update text
+
+      // Check if this ghost is taken
+      if (takenGhosts[ghost.name]) {
+        joinButton.disabled = true;
+        joinButton.textContent = 'TAKEN';
+        lobbyStatus.textContent = `${ghost.name} is being played by ${takenGhosts[ghost.name].name}`;
+      } else {
+        joinButton.disabled = false;
+        joinButton.textContent = 'JOIN GAME';
+        lobbyStatus.textContent = '';
+      }
+    }
+
+    prevGhostBtn.addEventListener('click', () => {
+      currentGhostIndex = (currentGhostIndex - 1 + GHOSTS.length) % GHOSTS.length;
+      updateGhostSelector();
+    });
+
+    nextGhostBtn.addEventListener('click', () => {
+      currentGhostIndex = (currentGhostIndex + 1) % GHOSTS.length;
+      updateGhostSelector();
+    });
+
+    joinButton.addEventListener('click', () => {
+      const playerName = playerNameInput.value || 'Player';
+      const ghostName = GHOSTS[currentGhostIndex].name;
+      
+      lobbyStatus.textContent = `Joining as ${ghostName}...`;
+      joinButton.disabled = true;
+      
+      socket.emit('join-request', { name: playerName, ghost: ghostName });
+    });
+
+    // --- Socket Handlers ---
     socket.on('connect', () => {
-      statusEl.textContent = 'Connected!';
-      statusEl.style.color = 'lime';
+      statusText.textContent = 'Connected!';
+      statusText.style.color = 'lime';
+      // Ask server for the current ghost status
       socket.emit('controller-ready');
     });
     
     socket.on('disconnect', () => {
-      statusEl.textContent = 'Disconnected';
-      statusEl.style.color = 'red';
+      statusText.textContent = 'Disconnected';
+      statusText.style.color = 'red';
+      myGhostName = null;
+      showLobby();
     });
 
-    // --- Socket Emitter ---
+    socket.on('ghost-status', (status) => {
+      takenGhosts = status;
+      // If we are in the lobby, update the selector
+      if (controllerContainer.style.display === 'none') {
+        updateGhostSelector();
+      }
+    });
+
+    socket.on('join-success', (player) => {
+      // Server confirmed our join request
+      showController(player);
+    });
+
+    socket.on('join-error', (data) => {
+      // Server rejected our join request
+      lobbyStatus.textContent = data.message;
+      joinButton.disabled = false; // Re-enable button
+      updateGhostSelector(); // Re-sync state
+    });
+
+    // --- Socket Emitter (Joystick) ---
     const sendDirection = (dir, pressed) => {
-      if (dir) {
+      if (dir && myGhostName) { // Only send if we are in-game
         socket.emit('control', { 
           direction: dir, 
           pressed: pressed 
@@ -126,12 +380,9 @@
       }
     };
 
-    // --- Helper Functions ---
-    // Calculates the dominant direction from the joystick deltas
+    // --- Joystick Logic (Copied from original) ---
     function getDirection(dx, dy) {
-      if (Math.abs(dx) < deadZone && Math.abs(dy) < deadZone) {
-        return null; // In the dead zone
-      }
+      if (Math.abs(dx) < deadZone && Math.abs(dy) < deadZone) return null;
       if (Math.abs(dx) > Math.abs(dy)) {
         return (dx > 0) ? 'right' : 'left';
       } else {
@@ -139,80 +390,65 @@
       }
     }
 
-    // Function to calculate joystick geometry
     function initializeJoystick() {
+      if (!base.offsetParent) return; // Don't run if hidden
       const baseRect = base.getBoundingClientRect();
       baseCenterX = baseRect.left + baseRect.width / 2;
       baseCenterY = baseRect.top + baseRect.height / 2;
-      // The stick can move from its center to the edge of the base
       maxDistance = base.offsetWidth / 2 - stick.offsetWidth / 2;
-      deadZone = maxDistance * 0.2; // 20% deadzone
+      deadZone = maxDistance * 0.2;
     }
 
-    // --- Main Movement Logic ---
     function moveStick(clientX, clientY) {
       const dx = clientX - baseCenterX;
       const dy = clientY - baseCenterY;
       const distance = Math.sqrt(dx * dx + dy * dy);
       const angle = Math.atan2(dy, dx);
       
-      // Calculate the new stick position, clamped to the base
       const stickDistance = Math.min(distance, maxDistance);
       const stickPosX = Math.cos(angle) * stickDistance;
       const stickPosY = Math.sin(angle) * stickDistance;
 
-      // Move the visual stick
       stick.style.transform = `translate(calc(-50% + ${stickPosX}px), calc(-50% + ${stickPosY}px))`;
 
-      // --- Send commands to server ---
       const newDirection = getDirection(dx, dy);
-
       if (newDirection !== currentDirection) {
-        // A new direction has been triggered
-        if (currentDirection) {
-          sendDirection(currentDirection, false); // Let go of the old direction
-        }
-        sendDirection(newDirection, true); // Press the new direction
+        sendDirection(currentDirection, false);
+        sendDirection(newDirection, true);
         currentDirection = newDirection;
       }
     }
 
-    // --- Touch Event Handlers ---
     document.body.addEventListener('touchstart', (e) => {
+      if (controllerContainer.style.display === 'none') return; // Ignore touches in lobby
       e.preventDefault();
-      // Only track the first finger down
       if (activeTouchId !== null) return;
-      
       const touch = e.changedTouches[0];
       activeTouchId = touch.identifier;
-      moveStick(touch.clientX, touch.clientY); // Move stick on initial press
+      moveStick(touch.clientX, touch.clientY);
     }, { passive: false });
 
     document.body.addEventListener('touchmove', (e) => {
+      if (controllerContainer.style.display === 'none') return;
       e.preventDefault();
       if (activeTouchId === null) return;
-
-      // Find the finger that started this touch
       const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
       if (!touch) return;
-
       moveStick(touch.clientX, touch.clientY);
     }, { passive: false });
 
     function onTouchEnd(e) {
+      if (controllerContainer.style.display === 'none') return;
       e.preventDefault();
       if (activeTouchId === null) return;
-
-      // Check if the touch that was released is the one we are tracking
       const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
       if (!touch) return;
 
-      // Reset
       activeTouchId = null;
-      stick.style.transform = 'translate(-50%, -50%)'; // Snap back to center
+      stick.style.transform = 'translate(-50%, -50%)';
       
       if (currentDirection) {
-        sendDirection(currentDirection, false); // "Release" the button
+        sendDirection(currentDirection, false);
         currentDirection = null;
       }
     }
@@ -220,11 +456,10 @@
     document.body.addEventListener('touchend', onTouchEnd);
     document.body.addEventListener('touchcancel', onTouchEnd);
 
-    // Recalculate geometry on resize (like screen rotation)
     window.addEventListener('resize', initializeJoystick);
 
-    // Initial setup
-    initializeJoystick();
+    // --- Initial Setup ---
+    showLobby(); // Start on the lobby screen
 
   </script>
 </body>
