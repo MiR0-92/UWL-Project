@@ -1166,9 +1166,14 @@ var newGameState = (function() {
             setScore(0);
             setFruitFromGameMode();
             readyNewState.init();
+            // Explicitly reset ghost speed levels for a new game
+            for (var i = 0; i < ghosts.length; i++) {
+                ghosts[i].speedLevel = 0;
+            }
+
             for (var i = 0; i < ghosts.length; i++) {
                 ghosts[i].score = 0; // Set the score to 0
-                updateGhostScoreDisplay(ghosts[i].name, ghosts[i].score);
+                updateGhostDisplay(ghosts[i]);
             }
         },
         setStartLevel: function(i) {
@@ -1340,8 +1345,13 @@ isPacmanCollide: function() {
 
                     g.score += pacScore;
                     setScore(0);
-                    updateGhostScoreDisplay(g.name, g.score);
-                    
+                    updateGhostDisplay(g);
+                    // Increase ghost speed level, max of 4
+                    if (g.speedLevel < 4) {
+                        g.speedLevel++;
+                        console.log(g.name + " speed level increased to: " + g.speedLevel);
+                    }
+                    updateGhostDisplay(g);
                     switchState(deadState);
                     return true; // Collision happened, stop processing
                 }

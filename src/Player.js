@@ -643,7 +643,14 @@ Player.prototype.update = function(j) {
             map.onDotEat(this.tile.x, this.tile.y);
             ghostReleaser.onDotEat();
             fruit.onDotEat();
-            addScore((t=='.') ? 10 : 50);
+            
+            // --- START OF MODIFICATION ---
+            // Calculate points based on level, capped at level 20
+            var levelMultiplier = Math.min(level, 20);
+            var dotPoints = 10 * levelMultiplier;
+            var energizerPoints = 50 * levelMultiplier;
+            addScore((t=='.') ? dotPoints : energizerPoints);
+            // --- END OF MODIFICATION ---
 
             if (t=='o')
                 energizer.activate();

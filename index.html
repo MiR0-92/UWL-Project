@@ -20,6 +20,7 @@
             margin:0;
             background: #000;
             background-color: #000 !important;
+            overflow: hidden; /* Hide scrollbars caused by layout */
         }
         @font-face {
             font-family: 'ArcadeR';
@@ -58,17 +59,16 @@
             }
         }
 
-        /* --- START OF MODIFICATION --- */
-
         /* This panel is now positioned absolutely */
         #player-status-panel {
             position: absolute;
             bottom: 100px;
-            left: calc(50% - 530px); /* Positioned bottom-left */
+            left: calc(50% - 600px); /* Positioned from the window's left edge */
             color: white;
             font-family: 'ArcadeR', monospace;
-            width: 250px; /* A bit smaller */
+            width: 330px;
             transform: scale(1.2);
+            z-index: 100; /* Make sure it's on top */
         }
 
         .status-header {
@@ -80,12 +80,16 @@
         }
 
         .header-name {
-            width: 130px; /* img + margin + name width */
+            width: 142px; /* img + margin + name width */
             padding-left: 32px; /* 24px img + 8px margin */
         }
 
         .header-score {
-            width: 120px;
+            width: 70px; /* Reduced width */
+        }
+
+        .header-bonus {
+            width: 138px; /* Added bonus header */
         }
 
         .player-status-row {
@@ -104,7 +108,7 @@
         }
 
         .player-name {
-            width: 100px; /* Adjusted width */
+            width: 110px; /* Adjusted width */
             text-transform: uppercase;
             font-weight: bold;
             font-size: 12px;
@@ -114,9 +118,18 @@
         }
         
         .player-score {
-            width: 120px;
+            width: 70px; /* Reduced width */
             color: #fff700;
             font-size: 12px;
+        }
+
+        .player-bonus {
+            width: 138px; /* Added bonus text */
+            color: #fff; /* White color as requested */
+            font-size: 12px;
+            text-align: center;
+            padding-right: 10px; /* Add some padding */
+            box-sizing: border-box;
         }
 
         /* Hide the panel on mobile, as it won't fit */
@@ -230,43 +243,47 @@
 
     <div style='font-family: ArcadeR'> </div>
     
-    <div id="game-container">
-
-        <div id="player-status-panel">
-            <div class="status-header">
-                <span class="header-name">NICKNAME</span>
-                <span class="header-score">SCORE</span>
-            </div>
-            
-            <div id="status-blinky" class="player-status-row">
-                <img src="images/blinky.png" alt="Blinky">
-                <span class="player-name" style="color: #FF0000;">BLINKY</span>
-                <span class="player-score">0</span>
-            </div>
-            
-            <div id="status-pinky" class="player-status-row">
-                <img src="images/pinky.png" alt="Pinky">
-                <span class="player-name" style="color: #FFB8FF;">PINKY</span>
-                <span class="player-score">0</span>
-            </div>
-            
-            <div id="status-inky" class="player-status-row">
-                <img src="images/inky.png" alt="Inky">
-                <span class="player-name" style="color: #00FFFF;">INKY</span>
-                <span class="player-score">0</span>
-            </div>
-            
-            <div id="status-clyde" class="player-status-row">
-                <img src="images/clyde.png" alt="Clyde">
-                <span class="player-name" style="color: #FFB851;">CLYDE</span>
-                <span class="player-score">0</span>
-            </div>
+    <div id="player-status-panel">
+        <div class="status-header">
+            <span class="header-name">NICKNAME</span>
+            <span class="header-score">SCORE</span>
+            <span class="header-bonus">BONUS SPEED</span>
         </div>
-
-        <div> <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
+        
+        <div id="status-blinky" class="player-status-row">
+            <img src="images/blinky.png" alt="Blinky">
+            <span class="player-name" style="color: #FF0000;">BLINKY</span>
+            <span class="player-score">0</span>
+            <span class="player-bonus">0%</span>
+        </div>
+        
+        <div id="status-pinky" class="player-status-row">
+            <img src="images/pinky.png" alt="Pinky">
+            <span class="player-name" style="color: #FFB8FF;">PINKY</span>
+            <span class="player-score">0</span>
+            <span class="player-bonus">0%</span>
+        </div>
+        
+        <div id="status-inky" class="player-status-row">
+            <img src="images/inky.png" alt="Inky">
+            <span class="player-name" style="color: #00FFFF;">INKY</span>
+            <span class="player-score">0</span>
+            <span class="player-bonus">0%</span>
+        </div>
+        
+        <div id="status-clyde" class="player-status-row">
+            <img src="images/clyde.png" alt="Clyde">
+            <span class="player-name" style="color: #FFB851;">CLYDE</span>
+            <span class="player-score">0</span>
+            <span class="player-bonus">0%</span>
+        </div>
+    </div>
+    <div id="game-container">
+        <div> 
+            <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
             <canvas id='atlas' style="display:none"></canvas>
         </div>
     </div>
-    </body>
+</body>
 
 </html>

@@ -10,11 +10,37 @@ var energizer = (function() {
     var pointsDuration = 1;
 
     // how long to stay energized based on current level
-    var getDuration = (function(){
-        var seconds = [6,5,4,3,2,5,2,2,1,5,2,1,1,3,1,1,0,1];
+var getDuration = (function(){
+        // MODIFIED: New durations requested by user
+        // Levels 1-18:
+        var seconds = [
+            10, // Level 1
+            9,  // Level 2
+            8,  // Level 3
+            7,  // Level 4
+            6,  // Level 5
+            6,  // Level 6
+            6,  // Level 7
+            6,  // Level 8
+            6,  // Level 9
+            6,  // Level 10
+            6,  // Level 11
+            6,  // Level 12
+            6,  // Level 13
+            6,  // Level 14
+            6,  // Level 15
+            6,  // Level 16
+            6,  // Level 17
+            3   // Level 18
+        ];
         return function() {
             var i = level;
-            return (i > 18) ? 0 : 60*seconds[i-1];
+            // MODIFIED: After level 18 (i.e., 19+), duration is 3 seconds
+            if (i > 18) {
+                return 60 * 3; 
+            }
+            // For levels 1-18, use the array
+            return 60 * seconds[i-1];
         };
     })();
 

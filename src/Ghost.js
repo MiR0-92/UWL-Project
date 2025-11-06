@@ -162,8 +162,27 @@ Ghost.prototype.getNumSteps = function () {
   else if (this.scared) pattern = STEP_GHOST_FRIGHT;
   else if (this.elroy == 1) pattern = STEP_ELROY1;
   else if (this.elroy == 2) pattern = STEP_ELROY2;
+  // Get base steps from table and ensure it's a number
+    var numSteps = parseInt(this.getStepSizeFromTable(level ? level : 1, pattern));
 
-  return this.getStepSizeFromTable(level ? level : 1, pattern);
+    // Apply speed level bonus if not scared, not in tunnel, and speedLevel > 0
+    if (!this.scared && pattern != STEP_GHOST_TUNNEL && this.speedLevel > 0) {
+        var bonus = 0;
+        if (this.speedLevel == 1) { 
+            bonus = (Math.random() < 0.125) ? 1 : 0; // 12.5% chance to add 1 step
+        } else if (this.speedLevel == 2) { 
+            bonus = (Math.random() < 0.25) ? 1 : 0; // 25% chance
+        } else if (this.speedLevel == 3) { 
+            bonus = (Math.random() < 0.375) ? 1 : 0; // 37.5% chance
+        } else if (this.speedLevel == 4) { 
+           bonus = (Math.random() < 0.50) ? 1 : 0;; // 50% chance (always add 1)
+        }
+        
+        // Cap speed at 2 (the max sub-frames allowed by the engine)
+        return Math.min(2, numSteps + bonus);
+    }
+    
+    return numSteps;
 };
 
 // signal ghost to reverse direction after leaving current tile
@@ -205,6 +224,12 @@ Ghost.prototype.onEaten = function () {
   this.goHome(); // go home
   this.scared = false; // turn off scared
   this.ai = true;
+  // Decrease ghost speed level, min of 0
+  if (this.speedLevel > 0) {
+      this.speedLevel--;
+      console.log(this.name + " speed level decreased to: " + this.speedLevel);
+  }
+  updateGhostDisplay(this);
 };
 
 // move forward one step
