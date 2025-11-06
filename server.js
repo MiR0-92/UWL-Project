@@ -29,6 +29,17 @@ app.get('/controller', (req, res) => {
 
 let gameSocket = null;
 const GHOST_NAMES = ['blinky', 'pinky', 'inky', 'clyde'];
+
+// --- START OF MODIFICATION ---
+// All possible AI ghost names from src/game.js to block players from using
+const AI_GHOST_NAMES = [
+    'blinky', 'pinky', 'inky', 'clyde', 'sue', // Pac-Man & Ms. Pac-Man names
+    'plato', 'darwin', 'freud', 'newton',       // Crazy Otto names
+    'elmo', 'piggy', 'rosita', 'zoe'             // Cookie-Man names
+];
+// --- END OF MODIFICATION ---
+
+
 // New players object: stores player data keyed by ghost name
 // null means the ghost is AI-controlled
 let players = {
@@ -67,6 +78,14 @@ io.on('connection', (socket) => {
     socket.on('join-request', (data) => {
         const { name, ghost } = data;
 
+        // --- START OF MODIFICATION ---
+        // Validation 1: Check if player is trying to use a reserved ghost name
+        if (AI_GHOST_NAMES.includes(name.toLowerCase())) {
+            socket.emit('join-error', { message: 'Name Already Taken!' });
+            return;
+        }
+        // --- END OF MODIFICATION ---
+
         if (!ghost || !GHOST_NAMES.includes(ghost)) {
             console.log(`Controller ${socket.id} sent invalid join request.`);
             socket.emit('join-error', { message: 'Invalid ghost selected.' });
@@ -87,9 +106,12 @@ io.on('connection', (socket) => {
             // 1. Tell the controller it was successful
             socket.emit('join-success', { name: name, ghost: ghost });
 
-            // 2. Tell the game a player joined (using the *existing* event)
+            // 2. Tell the game a player joined
             if (gameSocket) {
-                gameSocket.emit('player-join', ghost);
+                // --- START OF MODIFICATION ---
+                // Send player's name along with the ghost
+                gameSocket.emit('player-join', { ghost: ghost, name: name });
+                // --- END OF MODIFICATION ---
             }
 
             // 3. Tell *all* controllers about the new status
@@ -104,7 +126,10 @@ io.on('connection', (socket) => {
         for (const ghostName of GHOST_NAMES) {
             if (players[ghostName]) {
                 console.log(`Notifying game of existing player: ${ghostName}`);
-                gameSocket.emit('player-join', ghostName);
+                // --- START OF MODIFICATION ---
+                // Send player's name along with the ghost
+                gameSocket.emit('player-join', { ghost: ghostName, name: players[ghostName].name });
+                // --- END OF MODIFICATION ---
             }
         }
     });

@@ -3,18 +3,14 @@
 
 <head>
 
-    <title>Pac-Man</title> 
+    <title>Cookie-Eater</title> 
 
-    <!-- Lock viewport on mobile devices. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 
-    <!-- Allow page to be saved as web app on iOS. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
 
-    <!-- Hide status bar -->
-    <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <!-- icon used for iOS Web App -->
     <link rel="apple-touch-icon-precomposed" href="icon/ios_icon.png"/>
 
     <link rel="icon" type="image/png" href="icon/favicon.png"/>
@@ -61,6 +57,77 @@
                 width: 75px !important;
             }
         }
+
+        /* --- START OF MODIFICATION --- */
+
+        /* This panel is now positioned absolutely */
+        #player-status-panel {
+            position: absolute;
+            bottom: 100px;
+            left: calc(50% - 530px); /* Positioned bottom-left */
+            color: white;
+            font-family: 'ArcadeR', monospace;
+            width: 250px; /* A bit smaller */
+            transform: scale(1.2);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 10px; /* Reduced margin */
+            font-size: 10px;
+            color: #ccc;
+        }
+
+        .header-name {
+            width: 130px; /* img + margin + name width */
+            padding-left: 32px; /* 24px img + 8px margin */
+        }
+
+        .header-score {
+            width: 120px;
+        }
+
+        .player-status-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px; /* Reduced margin */
+            height: 24px; /* 3 * 8px tileSize */
+            font-size: 10px;
+        }
+
+        .player-status-row img {
+            width: 24px; /* 3 * 8px tileSize */
+            height: 24px; /* 3 * 8px tileSize */
+            image-rendering: pixelated; /* Keep pixel art sharp */
+            margin-right: 8px; /* 1 * 8px tileSize */
+        }
+
+        .player-name {
+            width: 100px; /* Adjusted width */
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .player-score {
+            width: 120px;
+            color: #fff700;
+            font-size: 12px;
+        }
+
+        /* Hide the panel on mobile, as it won't fit */
+        @media (max-width: 767px) {
+            #player-status-panel {
+                display: none;
+            }
+            /* canvas margin-top is already handled */
+        }
+        /* --- END OF MODIFICATION --- */
+
     </style>
 
     <link rel="stylesheet" type="text/css" href="libs/bootstrap/bootstrap.min.css">
@@ -104,8 +171,7 @@
 </head>
 
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation" style="display: none;">     <!-- Remove style = "display: none" to see the navigation bar. -->
-        <div class="container-fluid">
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation" style="display: none;">     <div class="container-fluid">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">Toggle navigation</span>
@@ -163,8 +229,44 @@
     </div>
 
     <div style='font-family: ArcadeR'> </div>
-    <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
-    <canvas id='atlas' style="display:none"></canvas>
-</body>
+    
+    <div id="game-container">
+
+        <div id="player-status-panel">
+            <div class="status-header">
+                <span class="header-name">NICKNAME</span>
+                <span class="header-score">SCORE</span>
+            </div>
+            
+            <div id="status-blinky" class="player-status-row">
+                <img src="images/blinky.png" alt="Blinky">
+                <span class="player-name" style="color: #FF0000;">BLINKY</span>
+                <span class="player-score">0</span>
+            </div>
+            
+            <div id="status-pinky" class="player-status-row">
+                <img src="images/pinky.png" alt="Pinky">
+                <span class="player-name" style="color: #FFB8FF;">PINKY</span>
+                <span class="player-score">0</span>
+            </div>
+            
+            <div id="status-inky" class="player-status-row">
+                <img src="images/inky.png" alt="Inky">
+                <span class="player-name" style="color: #00FFFF;">INKY</span>
+                <span class="player-score">0</span>
+            </div>
+            
+            <div id="status-clyde" class="player-status-row">
+                <img src="images/clyde.png" alt="Clyde">
+                <span class="player-name" style="color: #FFB851;">CLYDE</span>
+                <span class="player-score">0</span>
+            </div>
+        </div>
+
+        <div> <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
+            <canvas id='atlas' style="display:none"></canvas>
+        </div>
+    </div>
+    </body>
 
 </html>

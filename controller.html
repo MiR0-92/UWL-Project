@@ -19,9 +19,15 @@
       -webkit-user-select: none;
     }
 
+    @font-face {
+        font-family: 'ArcadeR';
+        src: url('font/ARCADE_R.TTF');
+    }
+
     h1 {
       font-size: 7vw;
       margin: 0 0 1vh 0;
+      font-family: 'ArcadeR', monospace;
     }
 
     /* --- Container Styling --- */
@@ -43,9 +49,15 @@
     #controller-container {
       display: none; /* Hidden by default */
       flex-direction: column;
-      justify-content: flex-start; /* Align items to the top */
+      
+      /* --- START OF MODIFICATION --- */
+      /* Align to the top */
+      justify-content: flex-start; 
+      /* Push the whole block down from the top */
+      padding: 10vh 0 2vh 0; 
+      /* --- END OF MODIFICATION --- */
+      
       height: 100%; /* Ensure it fills the viewport height */
-      padding: 5vh 0; /* Top and bottom padding */
       box-sizing: border-box;
     }
 
@@ -92,19 +104,25 @@
       margin-top: 1.5vh;
       font-weight: bold;
       text-transform: capitalize;
+      font-family: 'ArcadeR', monospace;
     }
 
     #player-name-lobby {
       width: 70vw;
       max-width: 300px;
-      padding: 12px;
-      font-size: 5vw;
+      
+      /* --- START OF MODIFICATION --- */
+      padding: 10px; /* Reduced padding */
+      font-size: 4vw; /* Reduced font size */
+      /* --- END OF MODIFICATION --- */
+
       text-align: center;
       background: #333;
       color: #fff;
       border: 2px solid #555;
       border-radius: 8px;
       margin-bottom: 2vh;
+      font-family: 'ArcadeR', monospace;
     }
 
     #join-button {
@@ -118,6 +136,7 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      font-family: 'ArcadeR', monospace;
     }
     #join-button:disabled {
       background: #555;
@@ -128,8 +147,8 @@
       margin-top: 2vh;
       color: #ff4444;
       font-size: 4vw;
-      /* This ensures it doesn't push content up if it's empty */
       height: 1.2em; 
+      font-family: 'ArcadeR', monospace;
     }
 
     /* --- Controller View Styling (Re-ordered) --- */
@@ -138,6 +157,7 @@
       font-weight: bold;
       color: #87CEEB; /* Skyblue */
       margin-bottom: 1vh; /* Add a little space */
+      font-family: 'ArcadeR', monospace;
     }
 
     #ghost-image-ingame {
@@ -150,13 +170,14 @@
       font-size: 5vw;
       margin: 1vh 0 0 0; /* Add a little space */
       text-transform: capitalize;
+      font-family: 'ArcadeR', monospace;
     }
 
     #joystick-container {
       position: relative;
-      /* THIS IS THE FIX: */
-      margin-top: auto; /* Pushes joystick & status down */
-      margin-bottom: 3vh; /* Space between joystick and status */
+      /* This creates the gap between the text and the joystick */
+      margin-top: 8vh; 
+      margin-bottom: 3vh; 
     }
 
     #joystick-base {
@@ -185,7 +206,7 @@
       font-size: 4vw;
       font-weight: bold;
       margin: 0;
-      /* This item will be at the bottom, just above the 5vh padding */
+      font-family: 'ArcadeR', monospace;
     }
 
   </style>
@@ -367,7 +388,7 @@
       // Server rejected our join request
       lobbyStatus.textContent = data.message;
       joinButton.disabled = false; // Re-enable button
-      updateGhostSelector(); // Re-sync state
+      // We removed updateGhostSelector() from here to prevent it from clearing the error message
     });
 
     // --- Socket Emitter (Joystick) ---
