@@ -1166,6 +1166,10 @@ var newGameState = (function() {
             setScore(0);
             setFruitFromGameMode();
             readyNewState.init();
+            for (var i = 0; i < ghosts.length; i++) {
+                ghosts[i].score = 0; // Set the score to 0
+                updateGhostScoreDisplay(ghosts[i].name, ghosts[i].score);
+            }
         },
         setStartLevel: function(i) {
             startLevel = i;
@@ -1300,20 +1304,47 @@ var playState = {
 
     // handles collision between pac-man and ghosts
     // returns true if collision happened
-    isPacmanCollide: function() {
+isPacmanCollide: function() {
         var i,g;
         for (i = 0; i<4; i++) {
             g = ghosts[i];
+            
+            // Check for collision and that ghost is not in a "safe" mode
             if (g.tile.x == pacman.tile.x && g.tile.y == pacman.tile.y && g.mode == GHOST_OUTSIDE) {
-                if (g.scared) { // eat ghost
+                
+                // Case 1: Ghost is scared (Pac-Man eats ghost)
+                if (g.scared) {
                     energizer.addPoints();
                     g.onEaten();
+                    return true; // Collision happened, stop processing
                 }
-                else if (pacman.invincible) // pass through ghost
-                    continue;
-                else // killed by ghost
+                
+                // Case 2: Pac-Man is invincible
+                else if (pacman.invincible) {
+                    continue; // Ignore this ghost and check the next one
+                }
+
+                // Case 3: Pac-Man is killed by the ghost
+                else {
+                    var pacScore = getScore();
+                    
+                    // --- NaN Safety Check ---
+                    // This prevents NaN if scores somehow get corrupted
+                    if (isNaN(pacScore)) {
+                        pacScore = 0;
+                    }
+                    if (isNaN(g.score)) {
+                        g.score = 0;
+                    }
+                    // --- End Safety Check ---
+
+                    g.score += pacScore;
+                    setScore(0);
+                    updateGhostScoreDisplay(g.name, g.score);
+                    
                     switchState(deadState);
-                return true;
+                    return true; // Collision happened, stop processing
+                }
             }
         }
         return false;

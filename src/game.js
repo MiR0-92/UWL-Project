@@ -288,6 +288,15 @@ var saveHighScores = function() {
         localStorage.highScores = JSON.stringify(highScores);
     }
 };
+function updateGhostScoreDisplay(ghostName, score) {
+    var rowElement = document.getElementById('status-' + ghostName);
+    if (rowElement) {
+        var scoreElement = rowElement.querySelector('.player-score');
+        if (scoreElement) {
+            scoreElement.textContent = score;
+        }
+    }
+}
 
 var loadAISettings = function() {
     if (localStorage && localStorage.AISettings) {

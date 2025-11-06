@@ -13,7 +13,7 @@ var GHOST_LEAVING_HOME = 5;
 var Ghost = function () {
   // inherit data from Actor
   Actor.apply(this);
-
+  this.score = 0;
   this.randomScatter = false;
   this.faceDirEnum = this.dirEnum;
 
@@ -22,6 +22,7 @@ var Ghost = function () {
     this.nextDir = {};
     this.setNextDir(this.startDirEnum);
     this.stopped = false;
+    this.score = 0;
 };
 
 // inherit functions from Actor class
@@ -87,12 +88,13 @@ Ghost.prototype.reset = function () {
   this.sigReverse = false;
   this.sigLeaveHome = false;
 
+
   // modes
   this.mode = this.startMode;
   this.scared = false;
   this.stopped = false;
   this.ai = true;
-  
+
   this.savedSigReverse = {};
   this.savedSigLeaveHome = {};
   this.savedMode = {};
