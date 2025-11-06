@@ -141,7 +141,64 @@
         }
         /* --- END OF MODIFICATION --- */
 
-    </style>
+        
+        #power-ups-panel {
+            position: absolute;
+            bottom: 100px;
+            
+            /* --- THIS IS THE POSITIONING FIX --- */
+            left: calc(50% + 270px); 
+            
+            color: white;
+            font-family: 'ArcadeR', monospace;
+            width: 330px; 
+            transform: scale(1.2); 
+            z-index: 100;
+            text-align: left;
+        }
+
+        .power-ups-title {
+            font-size: 14px;
+            color: #FFFF00; /* Pac-Man Yellow */
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .power-ups-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 10px;
+            line-height: 1.8;
+        }
+        
+        .power-ups-list li {
+            text-transform: uppercase;
+        }
+    
+        .fruit-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            height: 25px; /* Match ghost panel row height */
+        }
+
+        .fruit-item canvas {
+            /* --- THIS IS THE SIZE FIX --- */
+            width: 25px; 
+            height: 25px;
+            image-rendering: pixelated; /* Keeps pixel art sharp */
+            margin-right: 10px;
+            margin-top: 4px; /* Vertically center 22px canvas in 24px row */
+        }
+        
+        /* Hide this new panel on mobile, just like the other one */
+        @media (max-width: 767px) {
+            #power-ups-panel {
+                display: none;
+            }
+        }
+        </style>
 
     <link rel="stylesheet" type="text/css" href="libs/bootstrap/bootstrap.min.css">
     <script src="/socket.io/socket.io.js"></script>
@@ -277,6 +334,47 @@
             <span class="player-score">0</span>
             <span class="player-bonus">0%</span>
         </div>
+    </div>
+
+    <div id="power-ups-panel">
+        <h3 class="power-ups-title">POWER UPS:</h3>
+        <ul class="power-ups-list">
+            <li class="fruit-item">
+                <canvas id="fruit-icon-cherry" width="25" height="25"></canvas>
+                <span>CHERRY - SPEED UP 2 SEC.</span>
+            </li>
+            <li class="fruit-item">
+                <canvas id="fruit-icon-strawberry" width="25" height="25"></canvas>
+                <span>STRAWBERRY - SPEED UP 4 SEC.</span>
+            </li>
+            <li class="fruit-item">
+                <canvas id="fruit-icon-orange" width="25" height="25"></canvas>
+                <span>ORANGE - SPEED UP 6 SEC.</span>
+            </li>
+            <li class="fruit-item">
+                <canvas id="fruit-icon-apple" width="25" height="25"></canvas>
+                <span>APPLE - SLOW GHOST 2 SEC.</span>
+            </li>
+            
+            <li class="spacer"></li>
+            
+            <li class="fruit-item">
+                <canvas id="fruit-icon-melon" width="25" height="25"></canvas>
+                <span>MELON -  SLOW GHOST 4 SEC</span>
+            </li>
+            <li class="fruit-item">
+                <canvas id="fruit-icon-galaxian" width="25" height="25"></canvas>
+                <span>GALAXIAN -  SLOW GHOST 6 SEC</span>
+            </li>
+            <li class="fruit-item">
+                <canvas id="fruit-icon-bell" width="25" height="25"></canvas>
+                <span>BELL - INVULNERABILITY 2 SEC.</span>
+            </li>
+            <li class="fruit-item">
+                <canvas id="fruit-icon-key" width="25" height="25"></canvas>
+                <span>KEY - INVULNERABILITY 4 SEC.</span>
+            </li>
+        </ul>
     </div>
     <div id="game-container">
         <div> 

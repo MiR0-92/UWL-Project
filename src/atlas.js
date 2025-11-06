@@ -274,16 +274,22 @@ var atlas = (function(){
 
     };
 
-    var copyCellTo = function(row, col, destCtx, x, y,display) {
+    var copyCellTo = function(row, col, destCtx, x, y,scale,display) {
+        // Default scale to 1 if not provided
+        if (scale === undefined) { 
+            scale = 1; 
+        }
         var sx = col*size*renderScale;
         var sy = row*size*renderScale;
         var sw = renderScale*size;
         var sh = renderScale*size;
 
-        var dx = x - size/2;
-        var dy = y - size/2;
-        var dw = size;
-        var dh = size;
+        var dw = size * scale;
+        var dh = size * scale;
+
+        var dx = x - dw/2;
+        var dy = y - dh/2;
+      
 
         if (display) {
             console.log(sx,sy,sw,sh,dw,dy,dw,dh);
@@ -506,7 +512,7 @@ var copyMuppetSprite = function(destCtx,x,y,frame,dirEnum,scared,flash,eyes_only
         copyCellTo(row,col,destCtx,x,y);
     };
 
-    var copyFruitSprite = function(destCtx,x,y,name) {
+    var copyFruitSprite = function(destCtx,x,y,name,scale) {
         var row = 0;
         var col = {
             "cherry": 0,
@@ -524,7 +530,7 @@ var copyMuppetSprite = function(destCtx,x,y,frame,dirEnum,scared,flash,eyes_only
             "cookieface": 12,
         }[name];
 
-        copyCellTo(row,col,destCtx,x,y);
+        copyCellTo(row,col,destCtx,x,y,scale);
     };
 
     return {

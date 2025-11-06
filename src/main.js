@@ -6,6 +6,53 @@ window.addEventListener("load", function() {
 	loadAISettings();
     initRenderer();
     atlas.create();
+function drawPowerUpIcons() {
+        
+        // This list now matches the 8 fruits from Pac-Man (src/fruit.js)
+        const fruitsToDraw = [
+            'cherry', 
+            'strawberry', 
+            'orange', 
+            'apple', 
+            'melon',
+            'galaxian',
+            'bell',
+            'key'
+        ];
+
+        // The canvas atlas must be created before we can copy from it
+        if (!atlas.getCanvas()) {
+            console.error("Atlas not ready for drawing power-ups.");
+            return;
+        }
+
+        fruitsToDraw.forEach(fruitName => {
+            const canvas = document.getElementById('fruit-icon-' + fruitName);
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                
+                // Center point for drawing on the small canvas (now 16x16)
+                const x_center = canvas.width / 2;
+                const y_center = canvas.height / 2;
+                
+                // --- THIS IS THE SIZE FIX ---
+                // Set scaleFactor to 2 to double the original 8px size to 16px
+                const scaleFactor = 2; 
+
+                // Clear the canvas before drawing
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Use the game's existing atlas function to draw the sprite
+                atlas.drawFruitSprite(ctx, x_center, y_center, fruitName, scaleFactor);
+
+            } else {
+                console.warn('Could not find canvas for fruit icon: ' + fruitName);
+            }
+        });
+    }
+
+    // Call the new function right after the atlas is created
+    drawPowerUpIcons();
     //initSwipe();
 	var anchor = window.location.hash.substring(1);
 	if (anchor == "learn") {
