@@ -1250,6 +1250,16 @@ var readyNewState = newChildObject(readyState, {
             map = mapPacman;
         }
         else if (gameMode == GAME_MSPACMAN || gameMode == GAME_OTTO) {
+            if (gameMode == GAME_MSPACMAN) {
+                if (level == 11) {
+                    // We are about to start level 11, use Pac-Man's static fruit
+                    fruit = pacfruit;
+                } else if (level == 12) {
+                    // We are about to start level 12 (after level 11), 
+                    // switch back to Ms. Pac-Man's moving fruit
+                    fruit = mspacfruit;
+                }
+            }
             setNextMsPacMap();
         }
         else if (gameMode == GAME_COOKIE) {

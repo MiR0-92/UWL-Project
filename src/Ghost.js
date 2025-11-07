@@ -19,12 +19,13 @@ var Ghost = function () {
 
   this.slowTimer = 0;
   this.savedSlowTimer = {};
-
+  
     this.ai = true; // Default to AI control
     this.inputDirEnum = undefined;
     this.nextDir = {};
     this.setNextDir(this.startDirEnum);
     this.stopped = false;
+    this.savedStopped = {};
     this.score = 0;
 };
 

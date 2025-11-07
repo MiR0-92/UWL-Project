@@ -70,15 +70,15 @@ testCollide: function() {
 
 var PacFruit = function() {
     BaseFruit.call(this);
-    this.fruits = [
-        {name:'cherry',     points:100},
-        {name:'strawberry', points:300},
-        {name:'orange',     points:500},
-        {name:'apple',      points:700},
-        {name:'melon',      points:1000},
-        {name:'galaxian',   points:2000},
-        {name:'bell',       points:3000},
-        {name:'key',        points:5000},
+this.fruits = [
+        {name:'cherry',     points:100,  effect: 'speed',      duration: 2 * 60},
+        {name:'strawberry', points:300,  effect: 'speed',      duration: 4 * 60},
+        {name:'orange',     points:500,  effect: 'speed',      duration: 6 * 60},
+        {name:'apple',      points:700,  effect: 'slow',       duration: 4 * 60},
+        {name:'pretzel',    points:700,  effect: 'slow',       duration: 2 * 60},
+        {name:'pear',       points:2000, effect: 'invincible', duration: 2 * 60},
+        {name:'banana',     points:5000, effect: 'invincible', duration: 4 * 60},
+        {name:'banana',     points:5000, effect: 'invincible', duration: 4 * 60}, // Kept your 'key' replacement
     ];
 
     this.order = [
@@ -340,9 +340,10 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
 });
 
 var fruit;
-var setFruitFromGameMode = (function() {
     var pacfruit = new PacFruit();
     var mspacfruit = new MsPacFruit();
+var setFruitFromGameMode = (function() {
+
     fruit = pacfruit;
     return function() {
         if (gameMode == GAME_PACMAN) {
