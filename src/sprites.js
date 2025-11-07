@@ -1644,13 +1644,13 @@ var drawCookiemanSprite = (function(){
         sy2 = Math.sin(a2)*r2;
     };
 
-    return function(ctx,x,y,dirEnum,frame,shake,rot_angle, scale,centerShift,alpha) {
+    return function(ctx,x,y,dirEnum,frame,shake,rot_angle, scale,centerShift,alpha,color) {
         var angle = 0;
 
         // draw body
         var draw = function(angle) {
             //angle = Math.PI/6*frame;
-            drawPacmanSprite(ctx,x,y,dirEnum,angle,undefined,scale,centerShift,alpha,"#47b8ff",rot_angle);
+            drawPacmanSprite(ctx,x,y,dirEnum,angle,undefined,scale,centerShift,alpha, color || "#47b8ff",rot_angle);
         };
         if (frame == 0) {
             // closed

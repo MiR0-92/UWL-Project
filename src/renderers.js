@@ -923,6 +923,13 @@ var initRenderer = function(){
                 ctx.globalAlpha = alpha;
             }
 
+            // NEW: Handle slow ghost blink
+            if (g.slowTimer > 0 && Math.floor(g.frames / 8) % 2 == 0) {
+                if (!alpha) backupAlpha = ctx.globalAlpha; // Store original alpha if not already stored
+                ctx.globalAlpha = 0.5; // Blink to 50% opacity
+                alpha = true; // Set flag to restore alpha later
+            }
+            
             var draw = function(mode, pixel, frames, faceDirEnum, scared, isFlash,color, dirEnum) {
                 if (mode == GHOST_EATEN)
                     return;
@@ -961,7 +968,15 @@ var initRenderer = function(){
             var draw = function(pixel, dirEnum, steps) {
                 var frame = pacman.getAnimFrame(pacman.getStepFrame(steps));
                 var func = getPlayerDrawFunc();
-                func(ctx, pixel.x, pixel.y, dirEnum, frame, true, undefined, undefined, undefined);
+                
+                // NEW: Handle speed boost blink
+                var color = undefined; // Use default color
+                if (pacman.speedBoostTimer > 0 && Math.floor(pacman.frames / 8) % 2 == 0) {
+                    color = "#FFD700"; // Gold
+                }
+
+                // Pass the new color variable as the 11th argument
+                func(ctx, pixel.x, pixel.y, dirEnum, frame, true, undefined, undefined, undefined, undefined, color);
             };
 
             vcr.drawHistory(ctx, function(t) {

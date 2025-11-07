@@ -17,6 +17,9 @@ var Ghost = function () {
   this.randomScatter = false;
   this.faceDirEnum = this.dirEnum;
 
+  this.slowTimer = 0;
+  this.savedSlowTimer = {};
+
     this.ai = true; // Default to AI control
     this.inputDirEnum = undefined;
     this.nextDir = {};
@@ -27,6 +30,10 @@ var Ghost = function () {
 
 // inherit functions from Actor class
 Ghost.prototype = newChildObject(Actor.prototype);
+
+Ghost.prototype.slowDown = function(duration) {
+    this.slowTimer = duration;
+};
 
 // displacements for ghost bouncing
 Ghost.prototype.getBounceY = (function () {
@@ -109,6 +116,7 @@ Ghost.prototype.reset = function () {
   // dirEnum      = direction the ghost is moving
   // (faceDirEnum represents what dirEnum will be once the ghost reaches the middle of the tile)
   this.faceDirEnum = this.dirEnum;
+  this.slowTimer = 0;
 };
 
 Ghost.prototype.save = function (t) {
@@ -121,6 +129,7 @@ Ghost.prototype.save = function (t) {
   }
   this.savedFaceDirEnum[t] = this.faceDirEnum;
   this.savedStopped[t] = this.stopped;
+  this.savedSlowTimer[t] = this.slowTimer;
   Actor.prototype.save.call(this, t);
 };
 
@@ -134,6 +143,7 @@ Ghost.prototype.load = function (t) {
   }
   this.faceDirEnum = this.savedFaceDirEnum[t];
   this.stopped = this.savedStopped[t];
+  this.slowTimer = this.savedSlowTimer[t];
   Actor.prototype.load.call(this, t);
 };
 
@@ -151,6 +161,13 @@ Ghost.prototype.isSlowInTunnel = function () {
 
 // gets the number of steps to move in this frame
 Ghost.prototype.getNumSteps = function () {
+    // NEW: Slow Ghost Power-Up
+    if (this.slowTimer > 0) {
+        // Use the same speed as a frightened ghost
+        var pattern = STEP_GHOST_FRIGHT;
+        return this.getStepSizeFromTable(level ? level : 1, pattern);
+    }
+
   var pattern = STEP_GHOST;
 
   if (this.mode == GHOST_GOING_HOME || this.mode == GHOST_ENTERING_HOME)
@@ -512,6 +529,25 @@ Ghost.prototype.steer = function() {
             }
         }
     }
+};
+
+// update this frame
+Ghost.prototype.update = function(j) {
+
+    // get number of steps to advance in this frame
+    var numSteps = this.getNumSteps();
+    if (j >= numSteps) 
+        return;
+
+    // update timers (only on the last step of the frame)
+    if (j == numSteps - 1) { // Only decrement once per game frame
+        if (this.slowTimer > 0) {
+            this.slowTimer--;
+        }
+    }
+    
+    // call super function to update position and direction
+    Actor.prototype.update.call(this,j);
 };
 
 Ghost.prototype.getPathDistLeft = function (fromPixel, dirEnum) {

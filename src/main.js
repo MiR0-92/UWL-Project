@@ -13,11 +13,10 @@ function drawPowerUpIcons() {
             'cherry', 
             'strawberry', 
             'orange', 
-            'apple', 
-            'melon',
-            'galaxian',
-            'bell',
-            'key'
+            'pretzel', 
+            'apple',
+            'pear',
+            'banana'
         ];
 
         // The canvas atlas must be created before we can copy from it

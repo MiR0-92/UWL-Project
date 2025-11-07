@@ -49,9 +49,17 @@ BaseFruit.prototype = {
     isCollide: function() {
         return Math.abs(pacman.pixel.y - this.pixel.y) <= midTile.y && Math.abs(pacman.pixel.x - this.pixel.x) <= midTile.x;
     },
-    testCollide: function() {
+testCollide: function() {
         if (this.isPresent() && this.isCollide()) {
-            addScore(this.getPoints());
+            var fruit = this.getCurrentFruit(); // Get the fruit object
+            
+            addScore(fruit.points);
+            
+            // NEW: Activate the power-up
+            if (fruit.effect) {
+                pacman.activatePowerup(fruit.effect, fruit.duration);
+            }
+            
             this.reset();
             this.scoreFramesLeft = this.scoreDuration*60;
         }
@@ -166,14 +174,14 @@ var PATH_EXIT = 2;
 
 var MsPacFruit = function() {
     BaseFruit.call(this);
-    this.fruits = [
-        {name: 'cherry',     points: 100},
-        {name: 'strawberry', points: 200},
-        {name: 'orange',     points: 500},
-        {name: 'pretzel',    points: 700},
-        {name: 'apple',      points: 1000},
-        {name: 'pear',       points: 2000},
-        {name: 'banana',     points: 5000},
+this.fruits = [
+        {name: 'cherry',     points: 100,  effect: 'speed',      duration: 2 * 60}, // 2 sec @ 60fps
+        {name: 'strawberry', points: 200,  effect: 'speed',      duration: 4 * 60}, // 4 sec
+        {name: 'orange',     points: 500,  effect: 'speed',      duration: 6 * 60}, // 6 sec
+        {name: 'pretzel',    points: 700,  effect: 'slow',       duration: 2 * 60}, // 2 sec
+        {name: 'apple',      points: 1000, effect: 'slow',       duration: 4 * 60}, // 4 sec
+        {name: 'pear',       points: 2000, effect: 'invincible', duration: 2 * 60}, // 2 sec
+        {name: 'banana',     points: 5000, effect: 'invincible', duration: 4 * 60}, // 4 sec
     ];
 
     this.dotLimit1 = 64;
