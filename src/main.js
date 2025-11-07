@@ -157,6 +157,7 @@ function drawPowerUpIcons() {
         var ghost = ghostMap[ghostName];
         
         if (ghost) {
+            ghost.playerName = playerName;
             console.log('Player ' + playerName + ' took control of ' + ghostName);
             
             // Check if ghost is outside the base.
@@ -180,6 +181,7 @@ function drawPowerUpIcons() {
     socket.on('player-leave', function(ghostName) {
         var ghost = ghostMap[ghostName];
         if (ghost) {
+            ghost.playerName = null;
             console.log('AI took control of ' + ghostName);
             ghost.ai = true; //
 			if (ghostName === 'blinky') window.player_controls_blinky = false;
@@ -188,6 +190,10 @@ function drawPowerUpIcons() {
             if (ghostName === 'clyde') window.player_controls_clyde = false;
             ghost.clearInputDir(); // Clear any lingering manual input
 
+            if (ghost.mode === GHOST_EATEN) {
+                ghost.mode = GHOST_GOING_HOME;
+                ghost.targetting = 'door';
+            }
             // Revert status panel to AI default
             updatePlayerStatus(ghostName, GHOST_DEFAULTS[ghostName].name);
         }

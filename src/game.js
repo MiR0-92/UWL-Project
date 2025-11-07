@@ -88,7 +88,7 @@ var getGhostNames = function(mode) {
         return ["plato","darwin","freud","newton"];
     }
     else if (mode == GAME_MSPACMAN) {
-        return ["blinky","pinky","inky","sue"];
+        return ["blinky","pinky","inky","clyde"];
     }
     else if (mode == GAME_PACMAN) {
         return ["blinky","pinky","inky","clyde"];

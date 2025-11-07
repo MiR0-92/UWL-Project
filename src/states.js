@@ -1680,11 +1680,106 @@ var overState = (function() {
         },
         update: function() {
             if (frames == 120) {
-                switchState(newGameState);
+                switchState(leaderboardState);
             }
             else
                 frames++;
         },
     };
 })();
+// Leaderboard State
+// (state to show player scores after game over)
 
+var leaderboardState = (function() {
+    var frames;
+    var durationInSeconds = 10;
+    var ranks = ["1ST", "2ND", "3RD", "4TH"];
+    var defaultNames = {};
+
+    return {
+        init: function() {
+            frames = 0;
+            // Get the default AI names for the current game mode
+            var names = getGhostNames(); //
+            defaultNames = {
+                'blinky': names[0].toUpperCase(),
+                'pinky':  names[1].toUpperCase(),
+                'inky':   names[2].toUpperCase(),
+                'clyde':  names[3].toUpperCase()
+            };
+        },
+draw: function() {
+            renderer.clearMapFrame();
+            
+            var ctx = renderer.renderFunc(function(ctx) {
+                // --- Draw Title ---
+                ctx.font = tileSize * 2 + "px ArcadeR";
+                ctx.textBaseline = "top";
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#0FF"; // "HIGH SCORES" color
+                ctx.fillText("HIGH SCORES", mapWidth / 2, 3 * tileSize);
+
+                // --- Draw Headers ---
+                ctx.font = tileSize + "px ArcadeR";
+                ctx.fillStyle = "#FFF";
+                var y = 9 * tileSize;
+                
+                // --- START OF LAYOUT MODIFICATION ---
+                var xRank = 2 * tileSize;  // Moved left
+                var xGhost = 7 * tileSize; // Moved left
+                var xName = 14 * tileSize; // Kept this
+                var xScore = 27 * tileSize; // Moved right to the edge
+                // --- END OF LAYOUT MODIFICATION ---
+
+                ctx.textAlign = "left";
+                ctx.fillText("RANK", xRank, y);
+                ctx.fillText("GHOST", xGhost, y);
+                ctx.fillText("NAME", xName, y);
+                ctx.textAlign = "right";
+                ctx.fillText("SCORE", xScore, y);
+
+                // --- Draw Scores ---
+                // Get ghosts and sort them by score, descending
+                var sortedGhosts = ghosts.slice(0).sort(function(a, b) { 
+                    return (b.score || 0) - (a.score || 0); 
+                });
+
+                for (var i = 0; i < sortedGhosts.length; i++) {
+                    var ghost = sortedGhosts[i];
+                    var rank = ranks[i];
+                    var name = ghost.playerName ? ghost.playerName.toUpperCase() : defaultNames[ghost.name];
+                    var score = ghost.score || 0;
+                    
+                    // --- ADDED THIS LINE TO FIX OVERLAP ---
+                    name = name.slice(0, 14); // Truncates name to 14 characters
+
+                    var yPos = (13 + i * 4) * tileSize; // Vertical position for this row
+
+                    // 1. Draw Rank
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = (i === 0) ? "#FF0" : "#FFF"; // Gold for 1st place
+                    ctx.fillText(rank, xRank, yPos);
+
+                    // 2. Draw Ghost Sprite
+                    atlas.drawGhostSprite(ctx, xGhost + tileSize, yPos + midTile.y, 0, DIR_RIGHT, false, false, false, ghost.color);
+
+                    // 3. Draw Name
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillText(name, xName, yPos);
+
+                    // 4. Draw Score
+                    ctx.textAlign = "right";
+                    ctx.fillStyle = "#FFFF00"; // Yellow for score
+                    ctx.fillText(score, xScore, yPos);
+                }
+            });
+        },
+        update: function() {
+            frames++;
+            // Wait 15 seconds (at 60fps) then restart the game
+            if (frames == durationInSeconds * 60) {
+                switchState(newGameState);
+            }
+        },
+    };
+})();
