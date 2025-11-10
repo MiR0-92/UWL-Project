@@ -189,6 +189,7 @@ var extraLives = 0;
 var savedLevel = {};
 var savedExtraLives = {};
 var savedHighScore = {};
+var ghostHighScores = [];
 var savedScore = {};
 var savedState = {};
 
@@ -286,6 +287,66 @@ var loadHighScores = function() {
 var saveHighScores = function() {
     if (localStorage) {
         localStorage.highScores = JSON.stringify(highScores);
+    }
+};
+
+var loadGhostHighScores = function() {
+    if (localStorage && localStorage.ghostHighScores) {
+        ghostHighScores = JSON.parse(localStorage.ghostHighScores);
+    } else {
+        // Initialize with empty or default scores if you like
+        ghostHighScores = [];
+    }
+};
+
+var saveGhostHighScores = function() {
+    if (localStorage) {
+        localStorage.ghostHighScores = JSON.stringify(ghostHighScores);
+    }
+};
+/**
+ * Checks current ghost scores against the high score list,
+ * adds them, sorts, truncates, and saves.
+ */
+var checkGhostHighScores = function() {
+    // Get default AI names for the current game mode
+    var defaultNames = getGhostNames();
+    var ghostNameMap = {
+        'blinky': defaultNames[0].toUpperCase(),
+        'pinky':  defaultNames[1].toUpperCase(),
+        'inky':   defaultNames[2].toUpperCase(),
+        'clyde':  defaultNames[3].toUpperCase()
+    };
+
+    var newEntries = 0;
+
+    // Add current game scores to the persistent list
+    for (var i = 0; i < ghosts.length; i++) {
+        var g = ghosts[i];
+        if (g.score > 0) { // Only add players who scored
+            ghostHighScores.push({
+                name: g.playerName ? g.playerName.toUpperCase() : ghostNameMap[g.name],
+                score: g.score,
+                ghost: g.name // Store 'blinky', 'pinky', etc. to know which sprite to draw
+            });
+            newEntries++;
+        }
+    }
+
+    // Only sort and save if new scores were added
+    if (newEntries > 0) {
+        // Sort by score, descending
+        ghostHighScores.sort(function(a, b) {
+            return (b.score || 0) - (a.score || 0);
+        });
+
+        // Keep only the top 10
+        if (ghostHighScores.length > 10) {
+            ghostHighScores = ghostHighScores.slice(0, 10);
+        }
+
+        // Save the new list to local storage
+        saveGhostHighScores();
     }
 };
 function updateGhostDisplay(ghost) {

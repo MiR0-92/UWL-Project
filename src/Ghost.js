@@ -187,13 +187,13 @@ Ghost.prototype.getNumSteps = function () {
     if (!this.scared && pattern != STEP_GHOST_TUNNEL && this.speedLevel > 0) {
         var bonus = 0;
         if (this.speedLevel == 1) { 
-            bonus = (Math.random() < 0.125) ? 1 : 0; // 12.5% chance to add 1 step
+            bonus = (Math.random() < 0.2) ? 1 : 0; // 20% chance to add 1 step
         } else if (this.speedLevel == 2) { 
-            bonus = (Math.random() < 0.25) ? 1 : 0; // 25% chance
+            bonus = (Math.random() < 0.4) ? 1 : 0; // 40% chance
         } else if (this.speedLevel == 3) { 
-            bonus = (Math.random() < 0.375) ? 1 : 0; // 37.5% chance
+            bonus = (Math.random() < 0.6) ? 1 : 0; // 60% chance
         } else if (this.speedLevel == 4) { 
-           bonus = (Math.random() < 0.50) ? 1 : 0;; // 50% chance (always add 1)
+           bonus = (Math.random() < 0.80) ? 1 : 0;; // 80% chance (always add 1)
         }
         
         // Cap speed at 2 (the max sub-frames allowed by the engine)

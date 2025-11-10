@@ -3,6 +3,7 @@
 
 window.addEventListener("load", function() {
     loadHighScores();
+    loadGhostHighScores();
 	loadAISettings();
     initRenderer();
     atlas.create();

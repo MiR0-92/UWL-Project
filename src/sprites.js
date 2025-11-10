@@ -1674,6 +1674,11 @@ var drawCookiemanSprite = (function(){
         if (rot_angle) {
             ctx.rotate(rot_angle);
         }
+        // Apply the same scale used for the body to the eyes
+        if (scale == undefined) {
+            scale = 1;
+        }
+        ctx.scale(scale, scale);
 
         // reflect or rotate sprite according to current direction
         var d90 = Math.PI/2;

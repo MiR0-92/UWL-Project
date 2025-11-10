@@ -14,23 +14,23 @@ var getDuration = (function(){
         // MODIFIED: New durations requested by user
         // Levels 1-18:
         var seconds = [
-            10, // Level 1
-            9,  // Level 2
-            8,  // Level 3
-            7,  // Level 4
-            6,  // Level 5
-            6,  // Level 6
-            6,  // Level 7
-            6,  // Level 8
-            6,  // Level 9
-            6,  // Level 10
-            6,  // Level 11
-            6,  // Level 12
-            6,  // Level 13
-            6,  // Level 14
-            6,  // Level 15
-            6,  // Level 16
-            6,  // Level 17
+            6, // Level 1
+            6,  // Level 2
+            6,  // Level 3
+            6,  // Level 4
+            5,  // Level 5
+            5,  // Level 6
+            5,  // Level 7
+            5,  // Level 8
+            5,  // Level 9
+            4,  // Level 10
+            4,  // Level 11
+            4,  // Level 12
+            4,  // Level 13
+            4,  // Level 14
+            4,  // Level 15
+            4,  // Level 16
+            4,  // Level 17
             3   // Level 18
         ];
         return function() {

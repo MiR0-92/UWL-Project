@@ -1184,8 +1184,8 @@ var newGameState = (function() {
                 return;
             renderer.blitMap();
             renderer.drawScore();
-            renderer.drawMessage("PLAYER ONE", "#0FF", 9, 14);
-            renderer.drawReadyMessage();
+            renderer.drawMessage(" CATCH ME", "#0FF", 9, 14);
+            renderer.drawMessage("IF YOU CAN!", "#0FF", 8.5, 20);
         },
         update: function() {
             if (frames == duration*60) {
@@ -1662,6 +1662,7 @@ var overState = (function() {
     var frames;
     return {
         init: function() {
+            checkGhostHighScores();
             frames = 0;
             var now = Date.now();
             var gameInfo = {
@@ -1693,8 +1694,16 @@ var overState = (function() {
 var leaderboardState = (function() {
     var frames;
     var durationInSeconds = 10;
-    var ranks = ["1ST", "2ND", "3RD", "4TH"];
+    var ranks = ["1ST", "2ND", "3RD", "4TH", "5TH", "6TH", "7TH", "8TH", "9TH", "10TH"];
     var defaultNames = {};
+
+    // Create a map to get ghost objects by name for drawing sprites
+    var ghostObjects = {
+        'blinky': blinky,
+        'pinky': pinky,
+        'inky': inky,
+        'clyde': clyde
+    };
 
     return {
         init: function() {
@@ -1738,22 +1747,18 @@ draw: function() {
                 ctx.textAlign = "right";
                 ctx.fillText("SCORE", xScore, y);
 
-                // --- Draw Scores ---
-                // Get ghosts and sort them by score, descending
-                var sortedGhosts = ghosts.slice(0).sort(function(a, b) { 
-                    return (b.score || 0) - (a.score || 0); 
-                });
-
-                for (var i = 0; i < sortedGhosts.length; i++) {
-                    var ghost = sortedGhosts[i];
+                // --- Draw Scores from persistent list ---
+                
+                // (This replaces the old logic that sorted the 'ghosts' array)
+                for (var i = 0; i < ghostHighScores.length; i++) {
+                    var entry = ghostHighScores[i];
+                    var ghost = ghostObjects[entry.ghost]; // Get ghost object for its color
                     var rank = ranks[i];
-                    var name = ghost.playerName ? ghost.playerName.toUpperCase() : defaultNames[ghost.name];
-                    var score = ghost.score || 0;
+                    var name = entry.name.slice(0, 14); // Truncate name to 14 chars
+                    var score = entry.score || 0;
                     
-                    // --- ADDED THIS LINE TO FIX OVERLAP ---
-                    name = name.slice(0, 14); // Truncates name to 14 characters
-
-                    var yPos = (13 + i * 4) * tileSize; // Vertical position for this row
+                    // Use tighter vertical spacing to fit 10
+                    var yPos = (12 + i * 2) * tileSize; 
 
                     // 1. Draw Rank
                     ctx.textAlign = "left";
@@ -1761,7 +1766,9 @@ draw: function() {
                     ctx.fillText(rank, xRank, yPos);
 
                     // 2. Draw Ghost Sprite
-                    atlas.drawGhostSprite(ctx, xGhost + tileSize, yPos + midTile.y, 0, DIR_RIGHT, false, false, false, ghost.color);
+                    if (ghost) { // Check if ghost exists (for safety)
+                        atlas.drawGhostSprite(ctx, xGhost + tileSize, yPos + midTile.y, 0, DIR_RIGHT, false, false, false, ghost.color);
+                    }
 
                     // 3. Draw Name
                     ctx.fillStyle = "#FFF";
