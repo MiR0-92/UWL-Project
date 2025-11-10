@@ -18,10 +18,10 @@ app.get('/', (req, res) => {
 });
 
 // Controller page
-app.get('/controller', (req, res) => {
-    res.sendFile(path.join(__dirname, 'controller.html'), (err) => {
+app.get('/join', (req, res) => {
+    res.sendFile(path.join(__dirname, 'join.html'), (err) => {
         if (err) {
-            console.error('Failed to send controller.html:', err);
+            console.error('Failed to send join.html:', err);
             res.status(404).send('Controller not found. Make sure you copied the file.');
         }
     });
@@ -62,6 +62,40 @@ function getPlayerStatus() {
     return status;
 }
 
+// --- START: Refactored Disconnect Logic ---
+/**
+ * Handles all logic for when a player (controller) or game disconnects.
+ * @param {Socket} socket - The socket that is disconnecting.
+ */
+function handleDisconnect(socket) {
+    console.log(`Handling disconnect for: ${socket.id}`);
+
+    if (gameSocket && gameSocket.id === socket.id) {
+        console.log('Game client disconnected.');
+        gameSocket = null;
+    }
+
+    const ghostName = socket.ghostName; // Get ghost name from the socket
+    // Check if player *still* owns the ghost (they might have already left)
+    if (ghostName && players[ghostName]) { 
+        // This was a player
+        console.log(`Player ${players[ghostName].name} for ${ghostName} disconnected. ${ghostName} is now AI controlled.`);
+        players[ghostName] = null; // Free up the ghost
+        
+        // 1. Tell the game the player left
+        if (gameSocket) {
+            gameSocket.emit('player-leave', ghostName);
+        }
+
+        // 2. Tell *all* controllers the ghost is now available
+        io.emit('ghost-status', getPlayerStatus());
+    } else {
+        console.log('Disconnect was not for an active player or game.');
+    }
+}
+// --- END: Refactored Disconnect Logic ---
+
+
 // Socket.io connection logic
 io.on('connection', (socket) => {
     console.log(`A user connected: ${socket.id}`);
@@ -75,16 +109,29 @@ io.on('connection', (socket) => {
         socket.emit('ghost-status', getPlayerStatus());
     });
     
+    // --- MODIFIED: Added Duplicate Name Check ---
     socket.on('join-request', (data) => {
         const { name, ghost } = data;
 
-        // --- START OF MODIFICATION ---
         // Validation 1: Check if player is trying to use a reserved ghost name
         if (AI_GHOST_NAMES.includes(name.toLowerCase())) {
             socket.emit('join-error', { message: 'Name Already Taken!' });
             return;
         }
-        // --- END OF MODIFICATION ---
+
+        // --- START: New Duplicate Name Check ---
+        let nameInUse = false;
+        for (const ghostKey in players) {
+            if (players[ghostKey] && players[ghostKey].name.toLowerCase() === name.toLowerCase()) {
+                nameInUse = true;
+                break;
+            }
+        }
+        if (nameInUse) {
+            socket.emit('join-error', { message: 'Name is already in use!' });
+            return;
+        }
+        // --- END: New Duplicate Name Check ---
 
         if (!ghost || !GHOST_NAMES.includes(ghost)) {
             console.log(`Controller ${socket.id} sent invalid join request.`);
@@ -118,6 +165,7 @@ io.on('connection', (socket) => {
             io.emit('ghost-status', getPlayerStatus());
         }
     });
+    // --- END: MODIFIED join-request ---
 
     socket.on('game-ready', () => {
         console.log(`Game client connected: ${socket.id}`);
@@ -143,28 +191,48 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- START: New Listeners for Exit Logic ---
+    socket.on('client-leave-request', () => {
+        const ghostName = socket.ghostName;
+        if (!ghostName) {
+            // This socket isn't a ghost, just disconnect them.
+            socket.disconnect();
+            return;
+        }
+
+        if (gameSocket) {
+            // Ask the game for the final score
+            console.log(`Requesting final score for ${ghostName} (${socket.id})`);
+            gameSocket.emit('get-final-score', { socketId: socket.id, ghostName: ghostName });
+        } else {
+            // Game isn't running, just let them exit with score 0
+            socket.emit('receive-exit-data', { score: 0 });
+            // Manually trigger disconnect logic for this player
+            handleDisconnect(socket); 
+        }
+    });
+
+    socket.on('return-final-score', (data) => {
+        const { socketId, score } = data;
+        console.log(`Received final score ${score} for ${socketId}`);
+        
+        // Find the controller socket by its ID
+        const controllerSocket = io.sockets.sockets.get(socketId);
+        if (controllerSocket) {
+            // Send them their score so they can show the exit screen
+            controllerSocket.emit('receive-exit-data', { score: score });
+            
+            // Now, process their disconnection
+            handleDisconnect(controllerSocket);
+        }
+    });
+    // --- END: New Listeners for Exit Logic ---
+
+
     socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.id}`);
-        
-        if (gameSocket && gameSocket.id === socket.id) {
-            console.log('Game client disconnected.');
-            gameSocket = null;
-        }
-
-        const ghostName = socket.ghostName; // Get ghost name from the socket
-        if (ghostName) {
-            // This was a player
-            console.log(`Player ${players[ghostName].name} for ${ghostName} disconnected. ${ghostName} is now AI controlled.`);
-            players[ghostName] = null; // Free up the ghost
-            
-            // 1. Tell the game the player left (using the *existing* event)
-            if (gameSocket) {
-                gameSocket.emit('player-leave', ghostName);
-            }
-
-            // 2. Tell *all* controllers the ghost is now available
-            io.emit('ghost-status', getPlayerStatus());
-        }
+        // Call the refactored function
+        handleDisconnect(socket);
     });
 });
 
@@ -172,5 +240,5 @@ const PORT = 3000;
 http.listen(PORT, () => {
     console.log(`Pac-Man is running!`);
     console.log(`- Game: http://localhost:${PORT}`);
-    console.log(`- Controller: http://localhost:${PORT}/controller`);
+    console.log(`- Controller: http://localhost:${PORT}/join`);
 });

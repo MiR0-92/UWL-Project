@@ -217,6 +217,21 @@ function drawPowerUpIcons() {
         }
     });
 
+    // --- START: New Score Request Listener ---
+    socket.on('get-final-score', function(data) {
+        const { socketId, ghostName } = data;
+        let finalScore = 0;
+        
+        const ghost = ghostMap[ghostName];
+        if (ghost) {
+            finalScore = ghost.score || 0;
+        }
+        
+        // Send the score back to the server, tagging it with the socket.id
+        socket.emit('return-final-score', { socketId: socketId, score: finalScore });
+    });
+    // --- END: New Score Request Listener ---
+
 	$("#startingLives").val(NumStartingLives);
 	$("#extraLifeScore").val(ExtraLifeScore);
 

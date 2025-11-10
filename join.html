@@ -208,13 +208,111 @@
       margin: 0;
       font-family: 'ArcadeR', monospace;
     }
+    
+    /* --- START: Exit Button Styles --- */
+    .exit-btn {
+      position: absolute;
+      top: 3vh;
+      left: 3vw;
+      background: none;
+      border: none;
+      color: #fff;
+      font-family: 'ArcadeR', monospace;
+      font-size: 4vw;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 15vw;
+    }
+    .exit-btn img {
+      width: 12vw;
+      height: 12vw;
+      image-rendering: pixelated;
+      margin-bottom: 0.5vh;
+    }
+    /* --- END: Exit Button Styles --- */
+
+    /* --- START: Exit Screen Styles --- */
+    #exit-container {
+      display: none; /* Hidden by default */
+      justify-content: flex-start; 
+      padding-top: 10vh; 
+      text-align: center;
+      font-family: 'ArcadeR', monospace;
+    }
+    #exit-container h1 {
+      font-size: 6vw;
+      color: #FFFF00; /* Pac-Man Yellow */
+      margin-bottom: 4vh;
+    }
+    #exit-container p {
+      font-size: 5vw;
+      color: #fff;
+      margin: 1.5vh 0;
+    }
+
+    #exit-countdown {
+      font-size: 4vw;
+      color: #ccc;
+      font-family: 'ArcadeR', monospace;
+      margin-bottom: 8vh; 
+    }
+
+    #exit-greeting {
+      font-size: 5vw;
+      color: #fff;
+      margin: 0;
+    }
+
+    #exit-username {
+      font-size: 6vw;
+      color: #FFFF00; /* Pac-Man Yellow */
+      margin-top: 0.5vh; 
+      margin-bottom: 5vh; 
+    }
+
+    #exit-score-label {
+      font-size: 5vw;
+      color: #fff;
+      margin: 0;
+    }
+    
+    #exit-score-value {
+      font-size: 5vw;
+      color: #FFFF00; /* Yellow for score */
+      margin-top: 0.5vh; 
+    }
+    
+    .exit-feedback {
+      font-size: 4vw;
+      color: #ccc;
+      margin-top: 5vh; 
+    }
+    
+    #feedback-button {
+      width: 70vw;
+      max-width: 300px;
+      padding: 15px;
+      font-size: 6vw;
+      font-weight: bold;
+      font-family: 'ArcadeR', monospace;
+      text-decoration: none;
+      color: #111; /* Black text */
+      background: #FFFF00; /* Pac-Man Yellow */
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 3vh; 
+    }
+    /* --- END: Exit Screen Styles --- */
 
   </style>
 </head>
 <body>
 
   <div id="lobby-container" class="container">
-    <h1>CHOOSE YOUR GHOST</h1>
+    <h1>CHOOSE GHOST</h1>
     
     <input type="text" id="player-name-lobby" placeholder="Enter Your Name">
 
@@ -234,6 +332,9 @@
 
   <div id="controller-container" class="container">
     
+    <button id="exit-button" class="exit-btn">
+      <img src="/images/door.png" alt="Exit"> <span>EXIT</span>
+    </button>
     <span id="player-name-ingame">Player</span>
     
     <img id="ghost-image-ingame" src="/images/blinky.png">
@@ -250,6 +351,19 @@
 
   </div>
 
+  <div id="exit-container" class="container">
+    <p id="exit-countdown"></p>
+  
+    <p id="exit-greeting">Thank you for playing</p>
+    <h1 id="exit-username">Player</h1>
+    
+    <p id="exit-score-label">Your score is:</p>
+    <p id="exit-score-value">0</p>
+    
+    <p class="exit-feedback">Would you like to leave some feedback?</p>
+
+    <a href="https://forms.gle/LyftbtqTAmJqrXBh7" target="_blank" id="feedback-button">HERE!</a>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
@@ -274,6 +388,18 @@
     const statusText = document.getElementById('status-text');
     const base = document.getElementById('joystick-base');
     const stick = document.getElementById('joystick-stick');
+    
+    // --- START: New Exit Elements ---
+    const exitButton = document.getElementById('exit-button');
+    const exitContainer = document.getElementById('exit-container');
+    
+    const exitCountdown = document.getElementById('exit-countdown'); 
+    const exitGreeting = document.getElementById('exit-greeting');
+    const exitUsername = document.getElementById('exit-username');
+    const exitScoreLabel = document.getElementById('exit-score-label');
+    const exitScoreValue = document.getElementById('exit-score-value');
+    // --- END: New Exit Elements ---
+
 
     // --- State Variables ---
     const GHOSTS = [
@@ -291,11 +417,14 @@
     let deadZone;
     let currentDirection = null;
     let activeTouchId = null;
-
+    let countdownInterval = null; 
+    
     // --- View Switching ---
     function showLobby() {
       lobbyContainer.style.display = 'flex';
       controllerContainer.style.display = 'none';
+      exitContainer.style.display = 'none'; // Hide exit screen
+      if (countdownInterval) clearInterval(countdownInterval); 
       lobbyStatus.textContent = '';
       updateGhostSelector(); // Re-check ghost availability
     }
@@ -303,6 +432,7 @@
     function showController(player) {
       lobbyContainer.style.display = 'none';
       controllerContainer.style.display = 'flex';
+      exitContainer.style.display = 'none'; // Hide exit screen
       
       myGhostName = player.ghost;
       const ghostData = GHOSTS.find(g => g.name === player.ghost);
@@ -317,6 +447,40 @@
       // A small delay ensures the browser has rendered it.
       setTimeout(initializeJoystick, 50);
     }
+    
+    // --- MODIFIED: New Exit Screen Function ---
+    function showExitScreen(score) {
+      lobbyContainer.style.display = 'none';
+      controllerContainer.style.display = 'none';
+      exitContainer.style.display = 'flex'; // Show exit screen
+
+      // MODIFIED: Set new text elements
+      const playerName = playerNameIngame.textContent;
+      exitUsername.textContent = playerName; // Just set the username
+      exitScoreValue.textContent = score; // Just set the score
+
+      // --- START COUNTDOWN LOGIC ---
+      let countdownValue = 15;
+      exitCountdown.textContent = `Exiting in ${countdownValue}...`;
+
+      if (countdownInterval) clearInterval(countdownInterval); // Clear any old timer
+      countdownInterval = setInterval(() => {
+        countdownValue--;
+        exitCountdown.textContent = `Exiting in ${countdownValue}...`;
+
+        if (countdownValue <= 0) {
+          clearInterval(countdownInterval);
+          // We can't close the window, so we'll redirect to the lobby
+          window.location.href = '/join'; 
+        }
+      }, 1000);
+      // --- END COUNTDOWN LOGIC ---
+
+      // Disconnect from server
+      socket.disconnect();
+    }
+    // --- END: New Exit Screen Function ---
+
 
     // --- Lobby Logic ---
     function updateGhostSelector() {
@@ -346,15 +510,47 @@
       updateGhostSelector();
     });
 
-    joinButton.addEventListener('click', () => {
-      const playerName = playerNameInput.value || 'Player';
-      const ghostName = GHOSTS[currentGhostIndex].name;
-      
-      lobbyStatus.textContent = `Joining as ${ghostName}...`;
-      joinButton.disabled = true;
-      
-      socket.emit('join-request', { name: playerName, ghost: ghostName });
+    // --- MODIFIED: Add join validation ---
+    playerNameInput.addEventListener('input', () => {
+        lobbyStatus.textContent = ''; // Clear error on typing
     });
+
+    joinButton.addEventListener('click', () => {
+        const playerName = playerNameInput.value; // Get raw value
+        const ghostName = GHOSTS[currentGhostIndex].name;
+        
+        // 1. Check for empty name
+        if (playerName.trim().length === 0) {
+            lobbyStatus.textContent = 'Please enter a name!';
+            return;
+        }
+
+        // 2. Check for length
+        if (playerName.length > 6) {
+            lobbyStatus.textContent = 'Name must be 6 characters or less.';
+            return;
+        }
+
+        // 3. Check for spaces
+        if (/\s/.test(playerName)) {
+            lobbyStatus.textContent = 'Spaces are not allowed.';
+            return;
+        }
+
+        // 4. Check for special symbols (any non-letter/non-number)
+        if (/[^a-zA-Z0-9]/.test(playerName)) {
+            lobbyStatus.textContent = 'Special symbols are forbidden.';
+            return;
+        }
+
+        // If all checks pass:
+        lobbyStatus.textContent = `Joining as ${ghostName}...`;
+        joinButton.disabled = true;
+        
+        socket.emit('join-request', { name: playerName.trim(), ghost: ghostName });
+    });
+    // --- END: Add join validation ---
+
 
     // --- Socket Handlers ---
     socket.on('connect', () => {
@@ -368,13 +564,16 @@
       statusText.textContent = 'Disconnected';
       statusText.style.color = 'red';
       myGhostName = null;
-      showLobby();
+      // Only show lobby if we are not *intentionally* on the exit screen
+      if (exitContainer.style.display === 'none') {
+        showLobby();
+      }
     });
 
     socket.on('ghost-status', (status) => {
       takenGhosts = status;
       // If we are in the lobby, update the selector
-      if (controllerContainer.style.display === 'none') {
+      if (controllerContainer.style.display === 'none' && exitContainer.style.display === 'none') {
         updateGhostSelector();
       }
     });
@@ -390,6 +589,12 @@
       joinButton.disabled = false; // Re-enable button
       // We removed updateGhostSelector() from here to prevent it from clearing the error message
     });
+
+    // --- START: New Score Receiver ---
+    socket.on('receive-exit-data', (data) => {
+      showExitScreen(data.score);
+    });
+    // --- END: New Score Receiver ---
 
     // --- Socket Emitter (Joystick) ---
     const sendDirection = (dir, pressed) => {
@@ -440,7 +645,23 @@
       }
     }
 
+    // --- START: Exit Button Logic (Moved Before Touch Listeners) ---
+    // MODIFIED: This now works for both click and touchstart
+    exitButton.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent any double-event issues
+      statusText.textContent = 'Leaving...';
+      // Ask server to get our score and disconnect us
+      socket.emit('client-leave-request');
+    });
+    // --- END: Exit Button Logic ---
+
     document.body.addEventListener('touchstart', (e) => {
+      // --- MODIFIED: Check if the touch is on the exit button ---
+      if (e.target === exitButton || exitButton.contains(e.target)) {
+        return; // Let the 'click' event handle it
+      }
+      // --- End of Fix ---
+
       if (controllerContainer.style.display === 'none') return; // Ignore touches in lobby
       e.preventDefault();
       if (activeTouchId !== null) return;
@@ -460,6 +681,13 @@
 
     function onTouchEnd(e) {
       if (controllerContainer.style.display === 'none') return;
+      
+      // --- MODIFIED: Check if the touch end is for the exit button ---
+      if (e.target === exitButton || exitButton.contains(e.target)) {
+        return; // Let the 'click' event handle it
+      }
+      // --- End of Fix ---
+      
       e.preventDefault();
       if (activeTouchId === null) return;
       const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
@@ -478,7 +706,7 @@
     document.body.addEventListener('touchcancel', onTouchEnd);
 
     window.addEventListener('resize', initializeJoystick);
-
+    
     // --- Initial Setup ---
     showLobby(); // Start on the lobby screen
 
