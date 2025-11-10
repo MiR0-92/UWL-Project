@@ -14,13 +14,13 @@ var renderScale;
 
 var mapMargin = 4*tileSize; // margin between the map and the screen
 var mapPad = tileSize/8; // padding between the map and its clipping
-
+var panelWidth = 30 * tileSize; // NEW: Width for side panels (16 tiles * 8px = 128px)
 var mapWidth = 28*tileSize+mapPad*2;
 var mapHeight = 36*tileSize+mapPad*2;
 var mapWidth_Tile = 28;
 var mapHeight_Tile = 36;
 
-var screenWidth = mapWidth+mapMargin*2;
+var screenWidth = mapWidth+(2 * panelWidth);
 var screenHeight = mapHeight+mapMargin*2;
 
 // all rendering will be shown on this canvas
@@ -36,7 +36,7 @@ var getDevicePixelRatio = function() {
     // Only consider the device pixel ratio for devices that are <= 320 pixels in width.
     // This is necessary for the iPhone4's retina display; otherwise the game would be blurry.
     // The iPad3's retina display @ 2048x1536 starts slowing the game down.
-    return 1;
+
     if (window.innerWidth <= 320) {
         return window.devicePixelRatio || 1;
     }
@@ -192,12 +192,7 @@ var initRenderer = function(){
 
             // clear margin area
             ctx.fillStyle = "#000";
-            (function(w,h,p){
-                ctx.fillRect(0,0,w,p+1);
-                ctx.fillRect(0,p,p,h-2*p);
-                ctx.fillRect(w-p-2,p,p+2,h-2*p);
-                ctx.fillRect(0,h-p-2,w,p+2);
-            })(screenWidth, screenHeight, mapMargin);
+            ctx.fillRect(0, 0, screenWidth, screenHeight);
 
             // draw fps
             ctx.font = (tileSize-2) + "px ArcadeR";
@@ -207,7 +202,7 @@ var initRenderer = function(){
            // ctx.fillText(Math.floor(executive.getFps())+" FPS", screenWidth, screenHeight); //uncomment to display FPS
 
             // translate to map space
-            ctx.translate(mapMargin+mapPad, mapMargin+mapPad);
+            ctx.translate(panelWidth + mapPad, mapMargin + mapPad);
         },
 
         endFrame: function() {

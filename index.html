@@ -63,7 +63,7 @@
         #player-status-panel {
             position: absolute;
             bottom: 100px;
-            left: calc(50% - 600px); /* Positioned from the window's left edge */
+            left: calc(50% - 650px); /* Positioned from the window's left edge */
             color: white;
             font-family: 'ArcadeR', monospace;
             width: 330px;
@@ -275,16 +275,16 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="aiDepth" class="settingsLabel">AI Depth:</label>
+                          <label for="aiDepth" class="settingsLabel">AI Depth:</label>
                                 <input id="aiDepth" class="form-control num-input" type="number">
                             </div>
                             <div class="form-group">
-                                <label for="showPacmanPath" class="settingsLabel">Show Pacman Best Route</label>
+                             <label for="showPacmanPath" class="settingsLabel">Show Pacman Best Route</label>
                                 <input type="checkbox" id="showPacmanPath" name="showPacmanPath">
                             </div>
                             <div class="form-group">
                                 <label for="showGhostPaths" class="settingsLabel">Show Ghost Paths</label>
-                                <input type="checkbox" id="showGhostPaths" name="showGhostPaths">
+                            <input type="checkbox" id="showGhostPaths" name="showGhostPaths">
                             </div>
                             <div id="play-manually-group" class="form-group">
                                 <label for="playManually" class="settingsLabel">Manual Play</label>
@@ -294,86 +294,14 @@
 
                         </form>
                     </li>
-                </ul>
+            </ul>
             </div>
         </div>
     </div>
 
     <div style='font-family: ArcadeR'> </div>
     
-    <div id="player-status-panel">
-        <div class="status-header">
-            <span class="header-name">NICKNAME</span>
-            <span class="header-score">SCORE</span>
-            <span class="header-bonus">BONUS SPEED</span>
-        </div>
-        
-        <div id="status-blinky" class="player-status-row">
-            <img src="images/blinky.png" alt="Blinky">
-            <span class="player-name" style="color: #FF0000;">BLINKY</span>
-            <span class="player-score">0</span>
-            <span class="player-bonus">0%</span>
-        </div>
-        
-        <div id="status-pinky" class="player-status-row">
-            <img src="images/pinky.png" alt="Pinky">
-            <span class="player-name" style="color: #FFB8FF;">PINKY</span>
-            <span class="player-score">0</span>
-            <span class="player-bonus">0%</span>
-        </div>
-        
-        <div id="status-inky" class="player-status-row">
-            <img src="images/inky.png" alt="Inky">
-            <span class="player-name" style="color: #00FFFF;">INKY</span>
-            <span class="player-score">0</span>
-            <span class="player-bonus">0%</span>
-        </div>
-        
-        <div id="status-clyde" class="player-status-row">
-            <img src="images/clyde.png" alt="Clyde">
-            <span class="player-name" style="color: #FFB851;">CLYDE</span>
-            <span class="player-score">0</span>
-            <span class="player-bonus">0%</span>
-        </div>
-    </div>
-
-<div id="power-ups-panel">
-        <h3 class="power-ups-title">POWER UPS:</h3>
-        <ul class="power-ups-list">
-            <li class="fruit-item">
-                <canvas id="fruit-icon-cherry" width="25" height="25"></canvas>
-                <span>CHERRY - SPEED UP 2 SEC.</span>
-            </li>
-            <li class="fruit-item">
-                <canvas id="fruit-icon-strawberry" width="25" height="25"></canvas>
-                <span>STRAWBERRY - SPEED UP 4 SEC.</span>
-            </li>
-            <li class="fruit-item">
-                <canvas id="fruit-icon-orange" width="25" height="25"></canvas>
-                <span>ORANGE - SPEED UP 6 SEC.</span>
-            </li>
-            <li class="fruit-item">
-                <canvas id="fruit-icon-pretzel" width="28" height="28"></canvas>
-                <span>PRETZEL - SLOW GHOSTS 2 SEC.</span>
-            </li>
-            
-            <li class="spacer"></li>
-            
-            <li class="fruit-item">
-                <canvas id="fruit-icon-apple" width="25" height="25"></canvas>
-                <span>APPLE - SLOW GHOSTS 4 SEC.</span>
-            </li>
-            <li class="fruit-item">
-                <canvas id="fruit-icon-pear" width="28" height="28"></canvas>
-                <span>PEAR - INVINCIBILITY 2 SEC.</span>
-            </li>
-            <li class="fruit-item">
-                <canvas id="fruit-icon-banana" width="25" height="25"></canvas>
-                <span>BANANA - INVINCIBILITY 4 SEC.</span>
-            </li>
-        </ul>
-    </div>
-    <div id="game-container">
+        <div id="game-container">
         <div> 
             <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
             <canvas id='atlas' style="display:none"></canvas>

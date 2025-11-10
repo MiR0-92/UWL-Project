@@ -7,52 +7,7 @@ window.addEventListener("load", function() {
 	loadAISettings();
     initRenderer();
     atlas.create();
-function drawPowerUpIcons() {
-        
-        // This list now matches the 8 fruits from Pac-Man (src/fruit.js)
-        const fruitsToDraw = [
-            'cherry', 
-            'strawberry', 
-            'orange', 
-            'pretzel', 
-            'apple',
-            'pear',
-            'banana'
-        ];
 
-        // The canvas atlas must be created before we can copy from it
-        if (!atlas.getCanvas()) {
-            console.error("Atlas not ready for drawing power-ups.");
-            return;
-        }
-
-        fruitsToDraw.forEach(fruitName => {
-            const canvas = document.getElementById('fruit-icon-' + fruitName);
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                
-                // Center point for drawing on the small canvas (now 16x16)
-                const x_center = canvas.width / 2;
-                const y_center = canvas.height / 2;
-                
-                // --- THIS IS THE SIZE FIX ---
-                // Set scaleFactor to 2 to double the original 8px size to 16px
-                const scaleFactor = 2; 
-
-                // Clear the canvas before drawing
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                // Use the game's existing atlas function to draw the sprite
-                atlas.drawFruitSprite(ctx, x_center, y_center, fruitName, scaleFactor);
-
-            } else {
-                console.warn('Could not find canvas for fruit icon: ' + fruitName);
-            }
-        });
-    }
-
-    // Call the new function right after the atlas is created
-    drawPowerUpIcons();
     //initSwipe();
 	var anchor = window.location.hash.substring(1);
 	if (anchor == "learn") {
@@ -93,55 +48,8 @@ function drawPowerUpIcons() {
 	socket.emit('game-ready');
 
     // --- START OF MODIFICATION ---
-
-    var GHOST_DEFAULTS = {};
-
-    /**
-     * Updates the player status panel with the correct name and color.
-     * @param {string} ghostName - The internal name ('blinky', 'pinky', etc.)
-     * @param {string} displayName - The name to display.
-     */
-    function updatePlayerStatus(ghostName, displayName) {
-        const rowElement = document.getElementById('status-' + ghostName);
-        if (rowElement) {
-            const nameElement = rowElement.querySelector('.player-name');
-            nameElement.textContent = displayName.toUpperCase();
-            
-            const defaultInfo = GHOST_DEFAULTS[ghostName];
-            if (displayName.toUpperCase() === defaultInfo.name) {
-                // It's an AI, use the ghost's color
-                nameElement.style.color = defaultInfo.color;
-            } else {
-                // It's a human player, use white
-                nameElement.style.color = defaultInfo.color;
-            }
-        }
-    }
-
-    /**
-     * Initializes the player status panel with the correct default names
-     * for the current game mode.
-     */
-    function initializePlayerStatusPanel() {
-        const names = getGhostNames(); // Get names for current gameMode
-        
-        // Use data from actors.js for colors
-        GHOST_DEFAULTS = {
-            'blinky': { name: names[0].toUpperCase(), color: blinky.color },
-            'pinky':  { name: names[1].toUpperCase(), color: pinky.color },
-            'inky':   { name: names[2].toUpperCase(), color: inky.color },
-            'clyde':  { name: "CLYDE", color: clyde.color }
-        };
-
-        // Set initial text and colors for all ghosts
-        for (const ghostName in GHOST_DEFAULTS) {
-            updatePlayerStatus(ghostName, GHOST_DEFAULTS[ghostName].name);
-        }
-    }
-    
-    // Initialize the panel right after setting the game state
-    initializePlayerStatusPanel();
-
+    // All HTML panel update functions have been removed.
+    // We will still store ghost names for the new UI.
     // --- END OF MODIFICATION ---
 
 	// Global flags for player control
@@ -158,7 +66,7 @@ function drawPowerUpIcons() {
         var ghost = ghostMap[ghostName];
         
         if (ghost) {
-            ghost.playerName = playerName;
+            ghost.playerName = playerName; // This is all we need to do now
             console.log('Player ' + playerName + ' took control of ' + ghostName);
             
             // Check if ghost is outside the base.
@@ -174,15 +82,14 @@ function drawPowerUpIcons() {
             if (ghostName === 'inky') window.player_controls_inky = true;
             if (ghostName === 'clyde') window.player_controls_clyde = true;
 
-            // Update the status panel
-            updatePlayerStatus(ghostName, playerName);
+            // REMOVED: updatePlayerStatus(ghostName, playerName);
         }
     });
 
     socket.on('player-leave', function(ghostName) {
         var ghost = ghostMap[ghostName];
         if (ghost) {
-            ghost.playerName = null;
+            ghost.playerName = null; // This is all we need to do now
             console.log('AI took control of ' + ghostName);
             ghost.ai = true; //
 			if (ghostName === 'blinky') window.player_controls_blinky = false;
@@ -195,8 +102,7 @@ function drawPowerUpIcons() {
                 ghost.mode = GHOST_GOING_HOME;
                 ghost.targetting = 'door';
             }
-            // Revert status panel to AI default
-            updatePlayerStatus(ghostName, GHOST_DEFAULTS[ghostName].name);
+            // REMOVED: updatePlayerStatus(ghostName, GHOST_DEFAULTS[ghostName].name);
         }
     });
     // --- END OF MODIFICATION ---

@@ -350,30 +350,7 @@ var checkGhostHighScores = function() {
     }
 };
 function updateGhostDisplay(ghost) {
-    var ghostName = ghost.name;
-    var score = ghost.score;
-    var speedLevel = ghost.speedLevel;
-
-    var rowElement = document.getElementById('status-' + ghostName);
-    if (rowElement) {
-        // Update Score
-        var scoreElement = rowElement.querySelector('.player-score');
-        if (scoreElement) {
-            scoreElement.textContent = score;
-        }
-
-        // Update Bonus
-        var bonusElement = rowElement.querySelector('.player-bonus');
-        if (bonusElement) {
-            var bonusText = "0%";
-            if (speedLevel === 1) bonusText = "+25%";
-            else if (speedLevel === 2) bonusText = "+50%";
-            else if (speedLevel === 3) bonusText = "+75%";
-            else if (speedLevel === 4) bonusText = "+100%";
-            
-            bonusElement.textContent = bonusText;
-        }
-    }
+ 
 }
 
 var loadAISettings = function() {
