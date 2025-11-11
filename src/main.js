@@ -97,6 +97,9 @@ window.addEventListener("load", function() {
             if (ghostName === 'inky') window.player_controls_inky = false;
             if (ghostName === 'clyde') window.player_controls_clyde = false;
             ghost.clearInputDir(); // Clear any lingering manual input
+            // --- NEW: Reset score for AI ---
+            ghost.score = 0;
+            console.log('Score reset for AI on ' + ghostName);
 
             if (ghost.mode === GHOST_EATEN) {
                 ghost.mode = GHOST_GOING_HOME;
@@ -131,10 +134,20 @@ window.addEventListener("load", function() {
         const ghost = ghostMap[ghostName];
         if (ghost) {
             finalScore = ghost.score || 0;
+            // --- NEW: Submit player's score to the leaderboard ---
+            submitSingleGhostScore(ghost);
         }
         
         // Send the score back to the server, tagging it with the socket.id
         socket.emit('return-final-score', { socketId: socketId, score: finalScore });
+    });
+    // Reset score on player join
+    socket.on('reset-ghost-score', function(ghostName) {
+        var ghost = ghostMap[ghostName];
+        if (ghost) {
+            ghost.score = 0;
+            console.log('Score reset for new player on ' + ghostName);
+        }
     });
     // --- END: New Score Request Listener ---
 

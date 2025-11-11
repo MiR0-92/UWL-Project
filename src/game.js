@@ -352,6 +352,39 @@ var checkGhostHighScores = function() {
 function updateGhostDisplay(ghost) {
  
 }
+/**
+ * Submits a single player-controlled ghost's score to the leaderboard.
+ * This is called when a player disconnects.
+ * @param {Ghost} ghost - The ghost object for the disconnecting player.
+ */
+var submitSingleGhostScore = function(ghost) {
+    // Only submit if it's a player, they have a name, and score is positive
+    if (!ghost || !ghost.playerName || ghost.score <= 0) {
+        return; 
+    }
+
+    // Add this single score
+    ghostHighScores.push({
+        name: ghost.playerName.toUpperCase(),
+        score: ghost.score,
+        ghost: ghost.name
+    });
+
+    // Sort by score, descending
+    ghostHighScores.sort(function(a, b) {
+        return (b.score || 0) - (a.score || 0);
+    });
+
+    // Keep only the top 10
+    if (ghostHighScores.length > 10) {
+        ghostHighScores = ghostHighScores.slice(0, 10);
+    }
+
+    // Save the new list to local storage
+    saveGhostHighScores();
+    
+    console.log("Submitted single score for " + ghost.playerName + ": " + ghost.score);
+};
 
 var loadAISettings = function() {
     if (localStorage && localStorage.AISettings) {

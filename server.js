@@ -110,7 +110,7 @@ io.on('connection', (socket) => {
     });
     
     // --- MODIFIED: Added Duplicate Name Check ---
-    socket.on('join-request', (data) => {
+socket.on('join-request', (data) => {
         const { name, ghost } = data;
 
         // Validation 1: Check if player is trying to use a reserved ghost name
@@ -153,12 +153,13 @@ io.on('connection', (socket) => {
             // 1. Tell the controller it was successful
             socket.emit('join-success', { name: name, ghost: ghost });
 
-            // 2. Tell the game a player joined
+            // 2. Tell the game a player joined (IF the game is connected)
             if (gameSocket) {
-                // --- START OF MODIFICATION ---
                 // Send player's name along with the ghost
                 gameSocket.emit('player-join', { ghost: ghost, name: name });
-                // --- END OF MODIFICATION ---
+                
+                // 2a. Tell the game to reset this ghost's score to 0 for the new player
+                gameSocket.emit('reset-ghost-score', ghost);
             }
 
             // 3. Tell *all* controllers about the new status
