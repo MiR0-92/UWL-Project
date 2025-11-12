@@ -7,7 +7,19 @@ window.addEventListener("load", function() {
 	loadAISettings();
     initRenderer();
     atlas.create();
-
+var audioUnlocked = false;
+    function unlockAudio() {
+        if (audioUnlocked) return;
+        audio.init();
+        audioUnlocked = true;
+        // Remove listeners so they don't fire again
+        window.removeEventListener('click', unlockAudio);
+        window.removeEventListener('touchstart', unlockAudio);
+        console.log("Audio unlocked by user interaction.");
+    }
+    // We must listen on 'click' AND 'touchstart' for mobile
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
     //initSwipe();
 	var anchor = window.location.hash.substring(1);
 	if (anchor == "learn") {

@@ -281,6 +281,9 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
     })(),
 
     move: function() {
+        if (this.frame % 16 == 0) {
+            audio.play('fruit_bounce');
+        }
         var p = this.path[Math.floor(this.frame/16)]; // get current path frame
         var b = this.bounceFrames[p][this.frame%16]; // get current bounce animation frame
         this.pixel.x += b.dx;

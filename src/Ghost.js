@@ -321,6 +321,7 @@ Ghost.prototype.homeSteer = (function () {
     if (this.pixel.y == map.homeBottomPixel) {
       // revive if reached its seat
       if (this.pixel.x == this.startPixel.x) {
+        audio.stop('eyes');
         this.setDir(DIR_UP);
         this.mode = this.arriveHomeMode;
       }

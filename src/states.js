@@ -1243,6 +1243,8 @@ var readyState =  (function(){
 var readyNewState = newChildObject(readyState, {
 
     init: function() {
+        audio.stopAllLoops();
+        audio.play('start');
 
         // increment level and ready the next map
         level++;
@@ -1285,6 +1287,8 @@ var readyNewState = newChildObject(readyState, {
 var readyRestartState = newChildObject(readyState, {
 
     init: function() {
+        audio.stopAllLoops();
+        audio.play('start');
         extraLives--;
         ghostReleaser.onRestartLevel();
         elroyTimer.onRestartLevel();
@@ -1301,6 +1305,7 @@ var readyRestartState = newChildObject(readyState, {
 
 var playState = {
     init: function() { 
+        audio.play('siren', true);
         if (practiceMode) {
             vcr.reset();
         }
@@ -1329,6 +1334,7 @@ isPacmanCollide: function() {
                 
                 // Case 1: Ghost is scared (Pac-Man eats ghost)
                 if (g.scared) {
+                    audio.play('eat_ghost');
                     energizer.addPoints();
                     g.onEaten();
                     return true; // Collision happened, stop processing
@@ -1397,6 +1403,7 @@ isPacmanCollide: function() {
             else { // make ghosts go home immediately after points disappear
                 for (i=0; i<4; i++)
                     if (ghosts[i].mode == GHOST_EATEN) {
+                        audio.play('eyes', true);
                         ghosts[i].mode = GHOST_GOING_HOME;
                         ghosts[i].targetting = 'door';
                     }
@@ -1548,6 +1555,8 @@ var deadState = (function() {
         triggers: {
             0: { // freeze
                 update: function() {
+                    audio.stop('siren');  
+                    audio.stop('fright');
                     var i;
                     for (i=0; i<4; i++) 
                         actors[i].frames++; // keep animating ghosts
@@ -1625,7 +1634,11 @@ var finishState = (function(){
 
         // script functions for each time
         triggers: {
-            0:   { draw: function() {
+            0:   {
+                init: function() {   
+                    audio.stop('siren'); 
+                },
+                 draw: function() {
                     renderer.setLevelFlash(false);
                     renderer.blitMap();
                     renderer.drawScore();
@@ -1662,6 +1675,7 @@ var overState = (function() {
     var frames;
     return {
         init: function() {
+            audio.stop('siren');
             checkGhostHighScores();
             frames = 0;
             var now = Date.now();

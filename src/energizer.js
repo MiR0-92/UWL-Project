@@ -86,6 +86,8 @@ var getDuration = (function(){
         save: save,
         load: load,
         reset: function() {
+            audio.stop('fright');    
+            audio.play('siren', true);
             count = 0;
             active = false;
             points = 100;
@@ -103,6 +105,8 @@ var getDuration = (function(){
             }
         },
         activate: function() { 
+            audio.stop('siren');    
+            audio.play('fright', true);
             active = true;
             count = 0;
             points = 100;
