@@ -1270,7 +1270,7 @@ var readyNewState = newChildObject(readyState, {
         map.resetCurrent();
         fruit.onNewLevel();
         renderer.drawMap();
-
+        playLevelMusic(level);
         // notify other objects of new level
         ghostReleaser.onNewLevel();
         elroyTimer.onNewLevel();
@@ -1289,6 +1289,7 @@ var readyRestartState = newChildObject(readyState, {
     init: function() {
         audio.stopAllLoops();
         audio.play('start');
+        playLevelMusic(level);
         extraLives--;
         ghostReleaser.onRestartLevel();
         elroyTimer.onRestartLevel();
@@ -1570,6 +1571,7 @@ var deadState = (function() {
                 update: function() {
                     audio.stop('siren');  
                     audio.stop('fright');
+                    audio.stopMusic();
                     audio.play('death');
                     var i;
                     for (i=0; i<4; i++) 
@@ -1697,6 +1699,7 @@ var overState = (function() {
     return {
         init: function() {
             audio.stop('siren');
+            audio.stopMusic();
             checkGhostHighScores();
             frames = 0;
             var now = Date.now();

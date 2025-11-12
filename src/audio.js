@@ -7,6 +7,11 @@ var audio = (function() {
     var bufferLoader;
     var bufferCache = {};
     var loopingSources = {}; // Tracks active loops (siren, fright, eyes)
+    
+    // --- START OF MODIFICATION ---
+    var currentMusicName = null; // Tracks the soundName of the current music
+    // --- END OF MODIFICATION ---
+
 
     // All the sounds we need to load
     var soundList = {
@@ -37,7 +42,16 @@ var audio = (function() {
         'ms_fright_flash': 'audio/ms_fright_flash.wav',
         'ms_cutscene_1': 'audio/ms_cutscene_1.wav',
         'ms_cutscene_2': 'audio/ms_cutscene_2.wav',
-        'ms_cutscene_2_bump': 'audio/ms_cutscene_2_bump.wav'
+        'ms_cutscene_2_bump': 'audio/ms_cutscene_2_bump.wav',
+        
+        // --- START OF MODIFICATION: Added Music Tracks ---
+        'music_lvl1': 'audio/level1.mp3',
+        'music_lvl2': 'audio/level2.mp3',
+        'music_lvl3': 'audio/level3.mp3',
+        'music_lvl4': 'audio/level4.mp3',
+        'music_lvl5': 'audio/level5.mp3',
+        'music_random': 'audio/level_random.mp3'
+        // --- END OF MODIFICATION ---
     };
 
     // --- Audio Loading ---
@@ -116,7 +130,7 @@ var audio = (function() {
 
             // If this is a looping sound, stop any existing instance first
             if (loop) {
-                this.stop(soundName);
+                this.stop(soundName); // Stop if it's already playing
             }
 
             var source = context.createBufferSource();
@@ -139,12 +153,63 @@ var audio = (function() {
             delete loopingSources[soundName];
         },
         
+        // --- START OF MODIFICATION: Music Functions ---
+
+        /**
+         * Plays a background music track.
+         * Ensures only one music track plays at a time.
+         * @param {string} soundName - The name of the music track from soundList.
+         */
+        playMusic: function(soundName) {
+            if (!audioUnlocked) return;
+            
+            if (!bufferCache[soundName]) {
+                console.warn("Cannot play music: " + soundName + " is not loaded.");
+                return;
+            }
+
+            // If this music is already playing, do nothing
+            if (currentMusicName === soundName) {
+                return;
+            }
+
+            // If other music is playing, stop it
+            if (currentMusicName) {
+                this.stop(currentMusicName);
+            }
+
+            // Play the new music (and loop it)
+            this.play(soundName, true);
+            currentMusicName = soundName;
+        },
+
+        /**
+         * Stops the currently playing background music.
+         */
+        stopMusic: function() {
+            if (currentMusicName) {
+                this.stop(currentMusicName);
+                currentMusicName = null;
+            }
+        },
+        
+        // --- END OF MODIFICATION ---
+        
+
         // Helper to stop all loops (e.g., when Pac-Man dies)
         stopAllLoops: function() {
             if (!audioUnlocked) return;
-            for (var soundName in loopingSources) {
-                this.stop(soundName);
+            
+            // Clone keys because this.stop modifies the loopingSources object
+            var keys = Object.keys(loopingSources);
+            for (var i = 0; i < keys.length; i++) {
+                this.stop(keys[i]);
             }
+            
+            // --- START OF MODIFICATION ---
+            // Also reset the music tracker
+            currentMusicName = null;
+            // --- END OF MODIFICATION ---
         }
     };
 

@@ -95,7 +95,7 @@ var energizer = (function() {
     var savedActive = {};
     var savedPoints = {};
     var savedPointsFramesLeft = {};
-
+    var savedFlashing = {};
     // save state at time t
     var save = function(t) {
         savedCount[t] = count;
@@ -103,7 +103,6 @@ var energizer = (function() {
         savedPoints[t] = points;
         savedPointsFramesLeft[t] = pointsFramesLeft;
         savedFlashing[t] = flashing;
-        flashing = savedFlashing[t];
         // Note: We are not saving/loading killstreak state for the VCR
     };
 
@@ -113,6 +112,7 @@ var energizer = (function() {
         active = savedActive[t];
         points = savedPoints[t];
         pointsFramesLeft = savedPointsFramesLeft[t];
+        flashing = savedFlashing[t];
         // Note: We are not saving/loading killstreak state for the VCR
     };
 
