@@ -6,11 +6,41 @@
 
 var energizer = (function() {
 
+    // --- START OF MODIFICATION ---
+
+    // Killstreak sound and text definitions
+    const STREAK_SOUNDS = [
+        'firstblood',   // 1
+        'doublekill',   // 2
+        'multikill',    // 3
+        'ultrakill',    // 4
+        'rampage',      // 5
+        'unstoppable',  // 6
+        'godlike',      // 7
+        'monsterkill'   // 8
+    ];
+    const STREAK_TEXTS = [
+        'FIRSTBLOOD!',
+        'DOUBLEKILL!',
+        'MULTI-KILL!',
+        'ULTRA-KILL!',
+        'RAMPAGE!',
+        'UNSTOPPABLE!',
+        'GODLIKE!',
+        'MONSTERKILL!'
+    ];
+
+    // Timer durations in frames (60 frames = 1 second)
+    const STREAK_TIMER_DURATION = 1800; // 30 seconds
+    const STREAK_TEXT_DURATION = 120; // 2 seconds
+
+    // --- END OF MODIFICATION ---
+
     // how many seconds to display points when ghost is eaten
     var pointsDuration = 1;
 
     // how long to stay energized based on current level
-var getDuration = (function(){
+    var getDuration = (function(){
         // MODIFIED: New durations requested by user
         // Levels 1-18:
         var seconds = [
@@ -72,6 +102,7 @@ var getDuration = (function(){
         savedActive[t] = active;
         savedPoints[t] = points;
         savedPointsFramesLeft[t] = pointsFramesLeft;
+        // Note: We are not saving/loading killstreak state for the VCR
     };
 
     // load state at time t
@@ -80,11 +111,23 @@ var getDuration = (function(){
         active = savedActive[t];
         points = savedPoints[t];
         pointsFramesLeft = savedPointsFramesLeft[t];
+        // Note: We are not saving/loading killstreak state for the VCR
     };
+
+    
 
     return {
         save: save,
         load: load,
+
+        // --- START OF MODIFICATION ---
+        // Killstreak properties
+        killStreakCount: 0,     // Current number of ghosts in streak
+        killStreakTimer: 0,     // 30-second timer
+        killStreakText: "",     // Text to display
+        killStreakTextTimer: 0, // Timer for displaying text
+        // --- END OF MODIFICATION ---
+
         reset: function() {
             audio.stop('fright');    
             audio.play('siren', true);
@@ -94,6 +137,11 @@ var getDuration = (function(){
             pointsFramesLeft = 0;
             for (i=0; i<4; i++)
                 ghosts[i].scared = false;
+
+            // --- START OF MODIFICATION ---
+            // Reset killstreak (but not on energizer end, only on level change/death)
+            // We'll let the update() timers handle the reset
+            // --- END OF MODIFICATION ---
         },
         update: function() {
             var i;
@@ -103,6 +151,22 @@ var getDuration = (function(){
                 else
                     count++;
             }
+            
+            // --- START OF MODIFICATION ---
+            // Update killstreak timers, regardless of energizer state
+            if (this.killStreakTimer > 0) {
+                this.killStreakTimer--;
+                if (this.killStreakTimer === 0) {
+                    this.killStreakCount = 0; // Reset streak
+                }
+            }
+            if (this.killStreakTextTimer > 0) {
+                this.killStreakTextTimer--;
+                if (this.killStreakTextTimer === 0) {
+                    this.killStreakText = ""; // Clear text
+                }
+            }
+            // --- END OF MODIFICATION ---
         },
         activate: function() { 
             audio.stop('siren');    
@@ -126,7 +190,64 @@ var getDuration = (function(){
         getPoints: function() {
             return points;
         },
-        addPoints: function() {
+        
+        // --- START OF MODIFICATION: Re-written addPoints function ---
+addPoints: function() {
+            // --- START OF NEW LOGIC ---
+
+            var streakIndex; // 0-based index for arrays
+
+            if (this.killStreakTimer > 0) {
+                // We are in ROUND 2 (streak 5-8)
+                // This code runs *only* if the 30-second timer is active.
+                this.killStreakCount++; // Increment count (will be 5, 6, 7, or 8)
+                streakIndex = this.killStreakCount - 1;
+
+                if (streakIndex < STREAK_SOUNDS.length) {
+                    audio.play(STREAK_SOUNDS[streakIndex]);
+                    this.killStreakText = STREAK_TEXTS[streakIndex];
+                    this.killStreakTextTimer = STREAK_TEXT_DURATION;
+
+                    if (this.killStreakCount < 8) {
+                        // 5th, 6th, 7th kills: Reset the 30-second timer
+                        this.killStreakTimer = STREAK_TIMER_DURATION;
+                    } else if (this.killStreakCount === 8) {
+                        // 8th kill (Monsterkill): Reward extra life and reset
+                        audio.play('extra_life');
+                        extraLives++;
+                        renderer.drawMap(); // Update lives display
+                        this.killStreakTimer = 0; // Stop and reset streak
+                        this.killStreakCount = 0;
+                    }
+                }
+            } else {
+                // We are in ROUND 1 (streak 1-4)
+                // We check 'points' *before* it gets multiplied
+                if (points === 100) {       // 1st ghost
+                    streakIndex = 0;
+                    this.killStreakCount = 1;
+                } else if (points === 200) { // 2nd ghost
+                    streakIndex = 1;
+                    this.killStreakCount = 2;
+                } else if (points === 400) { // 3rd ghost
+                    streakIndex = 2;
+                    this.killStreakCount = 3;
+                } else if (points === 800) { // 4th ghost
+                    streakIndex = 3;
+                    this.killStreakCount = 4;
+                    // Start the 30-second timer
+                    this.killStreakTimer = STREAK_TIMER_DURATION; 
+                }
+
+                if (streakIndex !== undefined) {
+                    audio.play(STREAK_SOUNDS[streakIndex]);
+                    this.killStreakText = STREAK_TEXTS[streakIndex];
+                    this.killStreakTextTimer = STREAK_TEXT_DURATION;
+                }
+            }
+            // --- END OF NEW LOGIC ---
+
+            // Original logic (must run *after* checking points)
             addScore(points*=2);
             pointsFramesLeft = pointsDuration*60;
         },

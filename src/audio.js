@@ -14,9 +14,25 @@ var audio = (function() {
         'siren': 'audio/ms_siren0.wav',
         'eat_dot': 'audio/ms_eat_dot.ogg',
         'fright': 'audio/ms_fright.wav',
-        'eat_ghost': 'audio/ms_eat_ghost.wav',
-        'eyes': 'audio/ms_eyes.wav',
-        'fruit_bounce': 'audio/ms_fruit_bounce.mp3'
+        'fruit_bounce': 'audio/ms_fruit_bounce.mp3',
+
+        'firstblood': 'audio/firstblood.wav',
+        'doublekill': 'audio/doublekill.wav',
+        'multikill': 'audio/multikill.wav',
+        'ultrakill': 'audio/ultrakill.wav',
+        'rampage': 'audio/rampage.wav',
+        'unstoppable': 'audio/unstoppable.wav',
+        'godlike': 'audio/godlike.wav',
+        'monsterkill': 'audio/monsterkill.wav',
+        'extra_life': 'audio/extra_life.wav',
+
+        'eat_pill': 'audio/ms_eat_pill.ogg',
+        'speed_power': 'audio/ms_speed_power.ogg',
+        'slow_power': 'audio/ms_ghost_slow_power.ogg',
+        'invincibility_power': 'audio/ms_invicivility_power.wav',
+        'death': 'audio/ms_death.ogg',
+        'death_spinning': 'audio/ms_death1.wav',
+        'level_complete': 'audio/ms_level_complete.wav'
     };
 
     // --- Audio Loading ---

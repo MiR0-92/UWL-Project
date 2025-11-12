@@ -35,16 +35,21 @@ var Player = function() {
 Player.prototype = newChildObject(Actor.prototype);
 
 Player.prototype.activatePowerup = function(effect, duration) {
-    if (effect === 'speed') {
+if (effect === 'speed') {
         this.speedBoostTimer = duration;
+        audio.play('speed_power', true); // Play as loop
+        audio.stop('siren'); // Stop siren
     } else if (effect === 'invincible') {
         this.invincibleTimer = duration;
         this.invincible = true; // Turn on invincibility
+        audio.play('invincibility_power', true); // Play as loop
+        audio.stop('siren'); // Stop siren
     } else if (effect === 'slow') {
         // Tell all ghosts to slow down
         for (var i = 0; i < 4; i++) {
             ghosts[i].slowDown(duration);
         }
+        audio.play('slow_power'); // Play as a one-shot sound
     }
 };
 
@@ -661,13 +666,23 @@ Player.prototype.update = function(j) {
         if (this.eatPauseFramesLeft > 0) {
             this.eatPauseFramesLeft--;
         }
-        if (this.speedBoostTimer > 0) {
+  if (this.speedBoostTimer > 0) {
             this.speedBoostTimer--;
+            if (this.speedBoostTimer === 0) {
+                audio.stop('speed_power');
+                if (!energizer.isActive()) { // Only restart siren if not frightened
+                    audio.play('siren', true);
+                }
+            }
         }
         if (this.invincibleTimer > 0) {
             this.invincibleTimer--;
             if (this.invincibleTimer === 0) {
                 this.invincible = false; // Turn off invincibility
+                audio.stop('invincibility_power');
+                if (!energizer.isActive()) { // Only restart siren if not frightened
+                    audio.play('siren', true);
+                }
             }
         }
     }
@@ -681,10 +696,20 @@ Player.prototype.update = function(j) {
     Actor.prototype.update.call(this,j);
 
     // eat something
-    if (map) {
+if (map) {
         var t = map.getTile(this.tile.x, this.tile.y);
         if (t == '.' || t == 'o') {
-            audio.play('eat_dot');
+
+            // --- START OF MODIFICATION ---
+            if (t == 'o') {
+                audio.play('eat_pill');
+                energizer.activate();
+            }
+            else {
+                audio.play('eat_dot');
+            }
+            // --- END OF MODIFICATION ---
+
             // apply eating drag (unless in turbo mode)
             if (!turboMode) {
                 this.eatPauseFramesLeft = (t=='.') ? 1 : 3;
@@ -702,8 +727,7 @@ Player.prototype.update = function(j) {
             addScore((t=='.') ? dotPoints : energizerPoints);
             // --- END OF MODIFICATION ---
 
-            if (t=='o')
-                energizer.activate();
+            // The 'energizer.activate()' call was moved up
         }
     }
 };

@@ -462,7 +462,6 @@ var initRenderer = function(){
                 }
             }
         },
-
     };
 
     //////////////////////////////////////////////////////////////
@@ -742,30 +741,55 @@ var initRenderer = function(){
                     bgCtx.translate(3*tileSize, (numRows-1)*tileSize);
                     bgCtx.scale(0.85, 0.85);
                     var lives = extraLives == Infinity ? 1 : extraLives;
+var drawLifeIcon;
                     if (gameMode == GAME_PACMAN) {
-                        for (i=0; i<lives; i++) {
+                        drawLifeIcon = function() {
                             drawPacmanSprite(bgCtx, 0,0, DIR_LEFT, Math.PI/6);
-                            bgCtx.translate(2*tileSize,0);
-                        }
-                    }
-                    else if (gameMode == GAME_MSPACMAN) {
-                        for (i=0; i<lives; i++) {
-                            // drawMsPacmanSprite(bgCtx, 0,0, DIR_RIGHT, 1); uncomment to use ms pacman life counter sprites
-                            drawCookiemanSprite(bgCtx, 0,0, DIR_RIGHT, 1, false)
-                            bgCtx.translate(2*tileSize,0);
-                        }
-                    }
-                    else if (gameMode == GAME_COOKIE) {
-                        for (i=0; i<lives; i++) {
+                        };
+                    } else if (gameMode == GAME_MSPACMAN) {
+                        drawLifeIcon = function() {
+                            // drawMsPacmanSprite(bgCtx, 0,0, DIR_RIGHT, 1); 
                             drawCookiemanSprite(bgCtx, 0,0, DIR_RIGHT, 1, false);
-                            bgCtx.translate(2*tileSize,0);
-                        }
-                    }
-                    else if (gameMode == GAME_OTTO) {
-                        for (i=0; i<lives; i++) {
+                        };
+                    } else if (gameMode == GAME_COOKIE) {
+                        drawLifeIcon = function() {
+                            drawCookiemanSprite(bgCtx, 0,0, DIR_RIGHT, 1, false);
+                        };
+                    } else if (gameMode == GAME_OTTO) {
+                        drawLifeIcon = function() {
                             drawOttoSprite(bgCtx, 0,0,DIR_RIGHT, 0);
+                        };
+                    }
+
+                    // 2. Implement the new display logic
+                    if (extraLives == Infinity) {
+                        // Practice mode: Just draw one icon
+                        drawLifeIcon();
+                        bgCtx.translate(2*tileSize,0);
+
+                    } else if (lives < 4) {
+                        // 1, 2, or 3 lives: Draw them all
+                        for (i=0; i<lives; i++) { 
+                            drawLifeIcon();
                             bgCtx.translate(2*tileSize,0);
                         }
+                    } else {
+                        // 4 or more lives: Draw one icon, then text
+                        drawLifeIcon();
+                        bgCtx.translate(2*tileSize,0); // Move over for the text
+                        
+                        // Draw the "x" text
+                        // We must un-apply the 0.85 scale to draw text normally
+                        bgCtx.save();
+                        bgCtx.scale(1 / 0.85, 1 / 0.85); 
+                        // Use the same font as the level number
+                        bgCtx.font = (tileSize-1) + "px ArcadeR";
+                        bgCtx.textBaseline = "middle";
+                        bgCtx.fillStyle = "#FFF"; // White text
+                        bgCtx.textAlign = "left";
+                        // Draw at the new (0,0) coordinate, which is *after* the translate
+                        bgCtx.fillText("x" + lives, 0, 0); 
+                        bgCtx.restore();
                     }
                     if (extraLives == Infinity) {
                         bgCtx.translate(-4*tileSize,0);

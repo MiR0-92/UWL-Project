@@ -1314,6 +1314,13 @@ var playState = {
         renderer.setLevelFlash(false);
         renderer.blitMap();
         renderer.drawScore();
+if (energizer.killStreakText && energizer.killStreakTextTimer > 0) {
+            var text = energizer.killStreakText;
+            // Calculate the starting 'x' tile to center the text
+            var x_tile_start = 14 - (text.length / 2); 
+            // Draw at row -2 (two rows *above* the "1UP" text)
+            renderer.drawMessage(text, "#F00", x_tile_start, -2);
+        }
         renderer.beginMapClip();
         renderer.drawFruit();
         renderer.drawPaths();
@@ -1334,7 +1341,6 @@ isPacmanCollide: function() {
                 
                 // Case 1: Ghost is scared (Pac-Man eats ghost)
                 if (g.scared) {
-                    audio.play('eat_ghost');
                     energizer.addPoints();
                     g.onEaten();
                     return true; // Collision happened, stop processing
@@ -1557,6 +1563,7 @@ var deadState = (function() {
                 update: function() {
                     audio.stop('siren');  
                     audio.stop('fright');
+                    audio.play('death');
                     var i;
                     for (i=0; i<4; i++) 
                         actors[i].frames++; // keep animating ghosts
@@ -1578,6 +1585,10 @@ var deadState = (function() {
                 },
             },
             120: {
+                init: function() {
+                    // REPLACE 'death_spinning' with the name you used in audio.js
+                    audio.play('death_spinning'); 
+                },
                 draw: function(t) { // dying animation
                     commonDraw();
                     renderer.beginMapClip();
@@ -1648,7 +1659,10 @@ var finishState = (function(){
                     renderer.drawTargets();
                     renderer.endMapClip();
             } },
-            120:  { draw: function() { flashFloorAndDraw(true); } },
+            120:  { init: function() {
+                    audio.play('level_complete');
+                },
+                 draw: function() { flashFloorAndDraw(true); } },
             132: { draw: function() { flashFloorAndDraw(false); } },
             144: { draw: function() { flashFloorAndDraw(true); } },
             156: { draw: function() { flashFloorAndDraw(false); } },
