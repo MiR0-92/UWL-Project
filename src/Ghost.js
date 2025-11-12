@@ -545,6 +545,11 @@ Ghost.prototype.update = function(j) {
     if (j == numSteps - 1) { // Only decrement once per game frame
         if (this.slowTimer > 0) {
             this.slowTimer--;
+
+            // If the timer just reached zero, stop the looping sound.
+            if (this.slowTimer === 0) {
+                audio.stop('slow_power');
+            }
         }
     }
     

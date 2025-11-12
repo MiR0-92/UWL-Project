@@ -420,41 +420,42 @@ var saveAISettings = function() {
 function playLevelMusic(levelNum) {
     var trackName = null;
 
-    // --- START: New song logic based on level number ---
+    // --- Song logic based on level number (from previous fix) ---
     if (levelNum >= 1 && levelNum <= 2) {
         trackName = 'music_lvl1';
     } else if (levelNum >= 3 && levelNum <= 5) {
-        // Per your report: "on level 3... maze 2 comes"
         trackName = 'music_lvl2';
     } else if (levelNum >= 6 && levelNum <= 9) {
-        // Per your report: "on level 5 or 6 maze 3 comes"
         trackName = 'music_lvl3';
     } else if (levelNum == 10) {
-        // Using Level 10 for maze 4
         trackName = 'music_lvl4';
     } else if (levelNum == 11) {
-        // Per your report: "pacman maze in level11 to use level5"
         trackName = 'music_lvl5';
-    } else if (levelNum > 11) {
-        // Per your report: "after level 11 to use all track... + level_random"
+    } else if (levelNum == 12) {
+        trackName = 'music_random';
+    } else if (levelNum > 12) {
         var tracks = ['music_lvl1', 'music_lvl2', 'music_lvl3', 'music_lvl4', 'music_lvl5', 'music_random'];
         var randomIndex = Math.floor(Math.random() * tracks.length);
         trackName = tracks[randomIndex];
     }
-    // --- END: New song logic ---
+    // --- END: Song logic ---
 
     if (trackName) {
-        // --- START: Fix for overlap bug ---
-        if (trackName === 'music_random') {
-            // Play 'random' immediately (per your request)
+        
+        // --- START OF NEW FIX ---
+        // Check which song to play.
+        // Only level1 and random are allowed to overlap with ms_start.
+        if (trackName === 'music_lvl1' || trackName === 'music_random') {
+            // Play these tracks immediately.
             audio.playMusic(trackName);
         } else {
-            // Delay all other tracks to let 'ms_start' finish
+            // Delay all other tracks to let 'ms_start' finish.
             setTimeout(function() {
                 audio.playMusic(trackName);
             }, 2500); // 2.5-second delay
         }
-        // --- END: Fix for overlap bug ---
+        // --- END OF NEW FIX ---
+
     } else {
         // Stop music if no track is selected (e.g., in cutscenes)
         audio.stopMusic();

@@ -59,6 +59,10 @@ testCollide: function() {
             if (fruit.effect) {
                 pacman.activatePowerup(fruit.effect, fruit.duration);
             }
+            if (fruit.effect === 'slow') {
+                    // We use 'true' as the second argument to enable looping.
+                    audio.play('slow_power', true);
+                }
             
             this.reset();
             this.scoreFramesLeft = this.scoreDuration*60;

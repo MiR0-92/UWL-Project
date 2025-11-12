@@ -33,7 +33,7 @@ var audio = (function() {
 
         'eat_pill': 'audio/ms_eat_pill.ogg',
         'speed_power': 'audio/ms_speed_power.ogg',
-        'slow_power': 'audio/ms_ghost_slow_power.ogg',
+        'slow_power': 'audio/ms_ghost_slow_power.wav',
         'invincibility_power': 'audio/ms_invicivility_power.wav',
         'death': 'audio/ms_death.ogg',
         'death_spinning': 'audio/ms_death1.wav',
@@ -121,12 +121,17 @@ var audio = (function() {
             });
             bufferLoader.load();
             audioUnlocked = true;
+            // This will play the correct music for the level that's already loaded.
+            if (typeof playLevelMusic === 'function' && typeof level === 'number') {
+                playLevelMusic(level);
+            }
         },
 
         // Play a sound
         // loop (boolean): True if the sound should loop (e.g., siren)
         play: function(soundName, loop = false) {
             if (!audioUnlocked || !bufferCache[soundName]) return;
+
 
             // If this is a looping sound, stop any existing instance first
             if (loop) {
