@@ -3,7 +3,7 @@
 //
 
 var playCutScene = function(cutScene, nextState) {
-
+    audio.stopAllLoops();
     // redraw map buffer with fruit list but no map structure
     map = undefined;
     renderer.drawMap(true);
@@ -423,6 +423,7 @@ var mspacmanCutscene1 = (function() {
 
                             if (pinky.pixel.x == 105) {
                                 ghostMode++;
+                                audio.play('ms_cutscene_2_bump');
                             }
                         }
                         else if (ghostMode == GHOST_BUMP) {
@@ -620,7 +621,7 @@ var cookieCutscene1 = newChildObject(scriptState, {
 
     init: function() {
         scriptState.init.call(this);
-
+        audio.play('ms_cutscene_1');
         // initialize actor positions
         pacman.setPos(232, 164);
         blinky.setPos(257, 164);
@@ -724,6 +725,7 @@ var cookieCutscene1 = newChildObject(scriptState, {
         // end
         640: {
             init: function() {
+                audio.stop('ms_cutscene_1');
                 // disable custom steps
                 delete pacman.getNumSteps;
                 delete blinky.getNumSteps;
@@ -797,6 +799,7 @@ var cookieCutscene2 = (function() {
     };
 
     var exit = function() {
+        audio.stop('ms_cutscene_2');
         // disable custom steps
         delete inky.getNumSteps;
         delete pinky.getNumSteps;
@@ -818,7 +821,7 @@ var cookieCutscene2 = (function() {
 
         init: function() {
             scriptState.init.call(this);
-
+            audio.play('ms_cutscene_2');
             // chosen by trial-and-error to match animations
             mspac.frames = 14;
             pac.frames = 12;

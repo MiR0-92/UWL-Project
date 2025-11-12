@@ -1305,7 +1305,7 @@ var readyRestartState = newChildObject(readyState, {
 
 var playState = {
     init: function() { 
-        audio.play('siren', true);
+        this.sirenStarted = false;
         if (practiceMode) {
             vcr.reset();
         }
@@ -1416,7 +1416,14 @@ isPacmanCollide: function() {
             }
             
             if (!skip) {
-
+                if (!this.sirenStarted && (pacman.inputDirEnum !== undefined || AutoPilot) && 
+                    !energizer.isActive() && pacman.speedBoostTimer === 0 && pacman.invincibleTimer === 0) 
+                {
+                    // If the player has tried to move (or AI is on),
+                    // and no other high-priority sounds are playing, start the siren.
+                    audio.play('siren', true);
+                    this.sirenStarted = true;
+                }    
                 // update counters
                 ghostReleaser.update();
                 ghostCommander.update();
@@ -1647,7 +1654,7 @@ var finishState = (function(){
         triggers: {
             0:   {
                 init: function() {   
-                    audio.stop('siren'); 
+                    audio.stopAllLoops();
                 },
                  draw: function() {
                     renderer.setLevelFlash(false);

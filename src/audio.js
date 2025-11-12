@@ -32,7 +32,12 @@ var audio = (function() {
         'invincibility_power': 'audio/ms_invicivility_power.wav',
         'death': 'audio/ms_death.ogg',
         'death_spinning': 'audio/ms_death1.wav',
-        'level_complete': 'audio/ms_level_complete.wav'
+        'level_complete': 'audio/ms_level_complete.wav',
+
+        'ms_fright_flash': 'audio/ms_fright_flash.wav',
+        'ms_cutscene_1': 'audio/ms_cutscene_1.wav',
+        'ms_cutscene_2': 'audio/ms_cutscene_2.wav',
+        'ms_cutscene_2_bump': 'audio/ms_cutscene_2_bump.wav'
     };
 
     // --- Audio Loading ---

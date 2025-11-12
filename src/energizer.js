@@ -90,7 +90,7 @@ var energizer = (function() {
     var active; // indicates if energizer is currently active
     var points; // points that the last eaten ghost was worth
     var pointsFramesLeft; // number of frames left to display points earned from eating ghost
-
+    var flashing = false;
     var savedCount = {};
     var savedActive = {};
     var savedPoints = {};
@@ -102,6 +102,8 @@ var energizer = (function() {
         savedActive[t] = active;
         savedPoints[t] = points;
         savedPointsFramesLeft[t] = pointsFramesLeft;
+        savedFlashing[t] = flashing;
+        flashing = savedFlashing[t];
         // Note: We are not saving/loading killstreak state for the VCR
     };
 
@@ -128,28 +130,64 @@ var energizer = (function() {
         killStreakTextTimer: 0, // Timer for displaying text
         // --- END OF MODIFICATION ---
 
-        reset: function() {
-            audio.stop('fright');    
-            audio.play('siren', true);
+reset: function() {
+            audio.stop('fright');
+            audio.stop('ms_fright_flash'); // <<< ADD THIS
             count = 0;
             active = false;
+            flashing = false; // <<< ADD THIS
             points = 100;
             pointsFramesLeft = 0;
             for (i=0; i<4; i++)
                 ghosts[i].scared = false;
 
             // --- START OF MODIFICATION ---
-            // Reset killstreak (but not on energizer end, only on level change/death)
-            // We'll let the update() timers handle the reset
+            // This function is now a "hard reset" called on new levels and deaths.
+            // We can safely reset the killstreak here.
+            this.killStreakCount = 0;
+            this.killStreakTimer = 0;
+            this.killStreakText = "";
+            this.killStreakTextTimer = 0;
             // --- END OF MODIFICATION ---
         },
-        update: function() {
+update: function() {
             var i;
             if (active) {
-                if (count == getDuration())
-                    this.reset();
-                else
+                // --- START OF MODIFICATION: Inlined reset() logic ---
+                if (count == getDuration()) {
+                    // this.reset(); // Don't call this, as it resets the killstreak timer!
+                    
+                    // Instead, do the "energizer end" logic manually:
+                    audio.stop('fright');
+                    audio.stop('ms_fright_flash'); // <<< ADD THIS
+                    audio.play('siren', true);
+                    count = 0;
+                    active = false;
+                    flashing = false; // <<< ADD THIS
+                    points = 100; // Reset points for the *next* energizer
+                    pointsFramesLeft = 0;
+                    for (i=0; i<4; i++)
+                        ghosts[i].scared = false;
+                }
+                // --- END OF MODIFICATION ---
+                else {
                     count++;
+
+                    // --- START: New flashing sound logic ---
+                    if (getFlashes() > 0) { // Only check if this level has flashes
+                        // Calculate total time flashing lasts
+                        var flashThreshold = (2*getFlashes()-1) * flashInterval;
+                        var timeLeft = getDuration() - count;
+                        
+                        if (timeLeft <= flashThreshold && !flashing) {
+                            // This is the first frame of flashing
+                            flashing = true; // Set the flag
+                            audio.stop('fright'); // Stop the regular fright loop
+                            audio.play('ms_fright_flash', true); // Start the flashing loop
+                        }
+                    }
+                    // --- END: New flashing sound logic ---
+                }
             }
             
             // --- START OF MODIFICATION ---
@@ -168,12 +206,13 @@ var energizer = (function() {
             }
             // --- END OF MODIFICATION ---
         },
-        activate: function() { 
+activate: function() { 
             audio.stop('siren');    
             audio.play('fright', true);
             active = true;
             count = 0;
             points = 100;
+            flashing = false; // <<< ADD THIS
             for (i=0; i<4; i++) {
                 ghosts[i].onEnergized();
             }
@@ -218,6 +257,13 @@ addPoints: function() {
                         renderer.drawMap(); // Update lives display
                         this.killStreakTimer = 0; // Stop and reset streak
                         this.killStreakCount = 0;
+
+                        // --- START: Manually handle 8th kill score and reset ---
+                        addScore(points * 2); // Add score for this 8th kill
+                        points = 100;         // Reset points for the 9th ghost
+                        pointsFramesLeft = pointsDuration * 60;
+                        return; // Exit function to prevent double-scoring
+                        // --- END: Manually handle 8th kill score and reset ---
                     }
                 }
             } else {
@@ -247,7 +293,7 @@ addPoints: function() {
             }
             // --- END OF NEW LOGIC ---
 
-            // Original logic (must run *after* checking points)
+            // Original logic (runs for kills 1-7 and 9+)
             addScore(points*=2);
             pointsFramesLeft = pointsDuration*60;
         },
