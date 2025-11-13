@@ -118,13 +118,17 @@ var audio = (function() {
             bufferLoader = new BufferLoader(context, soundList, function(finishedList) {
                 bufferCache = finishedList;
                 console.log("Audio loaded.");
+                
+                // --- START OF FIX: Play initial music *after* loading ---
+                // This was moved from the end of init() to fix a race condition
+                if (typeof playLevelMusic === 'function' && typeof level === 'number') {
+                    playLevelMusic(level);
+                }
+                // --- END OF FIX ---
             });
             bufferLoader.load();
             audioUnlocked = true;
-            // This will play the correct music for the level that's already loaded.
-            if (typeof playLevelMusic === 'function' && typeof level === 'number') {
-                playLevelMusic(level);
-            }
+            // --- MOVED --- The playLevelMusic call was here
         },
 
         // Play a sound

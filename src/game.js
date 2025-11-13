@@ -445,7 +445,7 @@ function playLevelMusic(levelNum) {
         // --- START OF NEW FIX ---
         // Check which song to play.
         // Only level1 and random are allowed to overlap with ms_start.
-        if (trackName === 'music_lvl1' || trackName === 'music_random') {
+        if (trackName === 'music_lvl1' || trackName === 'music_random' || trackName === 'music_lvl5') {
             // Play these tracks immediately.
             audio.playMusic(trackName);
         } else {

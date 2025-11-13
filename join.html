@@ -24,6 +24,29 @@
         src: url('font/ARCADE_R.TTF');
     }
 
+    /* --- START: Full Screen Button Style --- */
+    #fullscreen-btn {
+      position: absolute;
+      top: 3vh;
+      right: 3vw;
+      z-index: 1000; /* On top of everything */
+
+      /* Copied from #feedback-button */
+      font-family: 'ArcadeR', monospace;
+      font-weight: bold;
+      color: #111; /* Black text */
+      background: #FFFF00; /* Pac-Man Yellow */
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+
+      /* Sized for a corner button */
+      font-size: 4vw; 
+      padding: 12px 15px;
+    }
+    /* --- END: Full Screen Button Style --- */
+
     h1 {
       font-size: 7vw;
       margin: 0 0 1vh 0;
@@ -310,7 +333,8 @@
   </style>
 </head>
 <body>
-
+  
+  <button id="fullscreen-btn">FULL SCREEN</button>
   <div id="lobby-container" class="container">
     <h1>CHOOSE GHOST</h1>
     
@@ -662,6 +686,13 @@
       }
       // --- End of Fix ---
 
+      // --- START: Check if touch is on the fullscreen button ---
+      const fsBtn = document.getElementById('fullscreen-btn');
+      if (e.target === fsBtn || fsBtn.contains(e.target)) {
+        return; // Let the 'click' event handle it
+      }
+      // --- END: Check ---
+
       if (controllerContainer.style.display === 'none') return; // Ignore touches in lobby
       e.preventDefault();
       if (activeTouchId !== null) return;
@@ -687,6 +718,13 @@
         return; // Let the 'click' event handle it
       }
       // --- End of Fix ---
+
+      // --- START: Check if touch end is on the fullscreen button ---
+      const fsBtn = document.getElementById('fullscreen-btn');
+      if (e.target === fsBtn || fsBtn.contains(e.target)) {
+        return; // Let the 'click' event handle it
+      }
+      // --- END: Check ---
       
       e.preventDefault();
       if (activeTouchId === null) return;
@@ -711,5 +749,24 @@
     showLobby(); // Start on the lobby screen
 
   </script>
-</body>
+
+  <script>
+    document.getElementById('fullscreen-btn').addEventListener('click', function() {
+      var elem = document.documentElement; // Get the whole <html> element
+      
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) { // Firefox
+        elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { // IE/Edge
+        elem.msRequestFullscreen();
+      }
+  
+      // Optional: You could hide the button after it's clicked
+      this.style.display = 'none'; 
+    });
+  </script>
+  </body>
 </html>
