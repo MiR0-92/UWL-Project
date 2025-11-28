@@ -199,6 +199,8 @@ this.fruits = [
     this.savedFrame = {};
     this.savedNumFrames = {};
     this.savedPath = {};
+    this.savedIsStatic = {};
+    this.savedFramesLeft = {};
 };
 
 MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
@@ -240,6 +242,8 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
         this.frame = 0;
         this.numFrames = 0;
         this.path = undefined;
+        this.isStatic = false;
+        this.framesLeft = 0;
     },
 
     initiatePath: function(p) {
@@ -252,6 +256,20 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
         if (this.shouldRandomizeFruit()) {
             this.setCurrentFruit(getRandomInt(0,6));
         }
+        if (map.name === "Pac-Man") {
+            this.isStatic = true;
+            
+            // Spawn exactly where it does in Pac-Man (13, 20)
+            var x = 13;
+            var y = 20;
+            this.pixel.x = tileSize*(1+x)-1;
+            this.pixel.y = tileSize*y + midTile.y;
+            
+            // Set duration to roughly 9 seconds (standard Pac-Man duration)
+            this.framesLeft = 60 * 9; 
+            return;
+        }
+        this.isStatic = false;
         var entrances = map.fruitPaths.entrances;
         var e = entrances[getRandomInt(0,entrances.length-1)];
         this.initiatePath(e.path);
@@ -261,6 +279,9 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
     },
 
     isPresent: function() {
+        if (this.isStatic) {
+            return this.framesLeft > 0;
+        }
         return this.frame < this.numFrames;
     },
 
@@ -298,8 +319,24 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
     setNextPath: function() {
         if (this.pathMode == PATH_ENTER) {
             this.pathMode = PATH_PEN;
-            this.initiatePath(this.pen_path);
+// 1. Check if the map has a custom path defined (e.g. from mapgen)
+            var customPath = (map.fruitPaths && map.fruitPaths.pen_path);
+            
+            if (customPath) {
+                this.initiatePath(customPath);
+            } 
+            // 2. Only force "safe mode" for Random Maps.
+            // We removed "Pac-Man" from here so it falls through to the standard loop below.
+            else if (map.name === "Random Map") {
+                this.initiatePath("><><><><><><><><><><><><><><><><><><><><><><><><><><");
+            } 
+            // 3. Standard Maps (Ms. Pac-Man 1-4 AND Pac-Man) use the classic loop.
+            // Since Level 11 (Pac-Man) works with this, we let it use the default behavior.
+            else {
+                this.initiatePath(this.pen_path);
+            }
         }
+        
         else if (this.pathMode == PATH_PEN) {
             this.pathMode = PATH_EXIT;
             var exits = map.fruitPaths.exits;
@@ -313,7 +350,12 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
 
     update: function() {
         BaseFruit.prototype.update.call(this);
-
+        if (this.isStatic) {
+            if (this.framesLeft > 0) {
+                this.framesLeft--;
+            }
+            return; // Do not move if static
+        }
         if (this.isPresent()) {
             this.move();
             if (this.frame == this.numFrames) {
@@ -330,6 +372,8 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
         this.savedFrame[t] =        this.frame;
         this.savedNumFrames[t] =    this.numFrames;
         this.savedPath[t] =         this.path;
+        this.savedIsStatic[t] =     this.isStatic;
+        this.savedFramesLeft[t] =   this.framesLeft;
     },
 
     load: function(t) {
@@ -343,6 +387,8 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
         this.frame =        this.savedFrame[t];
         this.numFrames =    this.savedNumFrames[t]; 
         this.path =         this.savedPath[t];
+        this.isStatic =     this.savedIsStatic[t];
+        this.framesLeft =   this.savedFramesLeft[t];
     },
 });
 
