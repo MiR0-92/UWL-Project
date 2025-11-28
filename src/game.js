@@ -7,7 +7,7 @@ var GAME_MSPACMAN = 1;
 var GAME_COOKIE = 2;
 var GAME_OTTO = 3;
 
-var practiceMode = false;
+var practiceMode = true;
 var turboMode = false;
 
 // current game mode

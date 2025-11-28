@@ -287,6 +287,32 @@ var setNextMsPacMap = function() {
     var maps = [mapMsPacman1, mapMsPacman2, mapMsPacman3, mapMsPacman4];
     var currentAct = getLevelAct(level); // Get the current act number
 
+    if (level >= 14) {
+        // Pick a number between 0 and 5
+        var r = Math.floor(Math.random() * 6);
+
+        if (r < 4) {
+            // 0-3: Pick one of the standard Ms. Pac-Man maps
+            map = maps[r];
+        } else if (r === 4) {
+            // 4: Pick the Original Pac-Man Map
+            map = mapPacman;
+            // Important: Assign fruit paths so the game doesn't crash in Ms. Pac-Man mode
+            map.fruitPaths = mapMsPacman1.fruitPaths; 
+        } else {
+            // 5: Generate a brand new random map (Cookie-Man style)
+            map = mapgen();
+        }
+
+        // Apply the high-level flashing colors defined for Acts 5+
+        var colors = getMsPacActColor(currentAct);
+        map.wallFillColor = colors.wallFillColor;
+        map.wallStrokeColor = colors.wallStrokeColor;
+        map.pelletColor = colors.pelletColor;
+
+        return; // Exit here so we don't run the old logic
+    }
+
     if (currentAct == 4) {
         // --- START OF YOUR CUSTOM ACT 4 LOGIC ---
         // Act 4 includes levels 10, 11, 12, and 13.

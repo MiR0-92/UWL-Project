@@ -79,7 +79,7 @@ var energizer = (function() {
         var flashes = [5,5,5,5,5,5,5,5,3,5,5,3,3,5,3,3,0,3];
         return function() {
             var i = level;
-            return (i > 18) ? 0 : flashes[i-1];
+            return (i > 18) ? 5 : flashes[i-1];
         };
     })();
 

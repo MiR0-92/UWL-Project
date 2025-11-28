@@ -1792,7 +1792,7 @@ draw: function() {
                     var entry = ghostHighScores[i];
                     var ghost = ghostObjects[entry.ghost]; // Get ghost object for its color
                     var rank = ranks[i];
-                    var name = entry.name.slice(0, 14); // Truncate name to 14 chars
+                    var name = entry.name.slice(0, 14); // Truncate name to 8 chars
                     var score = entry.score || 0;
                     
                     // Use tighter vertical spacing to fit 10
