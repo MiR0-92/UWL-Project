@@ -242,6 +242,11 @@ Ghost.prototype.onEaten = function () {
   this.goHome(); // go home
   this.scared = false; // turn off scared
   this.ai = true;
+  if (this.tile) {
+      this.pixel.x = (this.tile.x * tileSize) + midTile.x;
+      this.pixel.y = (this.tile.y * tileSize) + midTile.y;
+      this.commitPos(); // Update collision box and distance vars immediately
+  }
   // Decrease ghost speed level, min of 0
   if (this.speedLevel > 0) {
       this.speedLevel--;
@@ -425,7 +430,7 @@ Ghost.prototype.steer = function() {
     
             if (shouldBePlayerControlled) {
                 this.ai = false; // Give control back to player
-                this.clearInputDir();
+                //this.clearInputDir();
                 this.steer(); // Run the 'else' block immediately
                 return;
             }
@@ -530,7 +535,13 @@ Ghost.prototype.steer = function() {
                 }
             }
         }
+        if (this.nextDirEnum !== undefined) {
+             this.faceDirEnum = this.nextDirEnum;
+        } else {
+             this.faceDirEnum = this.dirEnum;
+        }
     }
+    
 };
 
 // update this frame

@@ -28,7 +28,7 @@ var hud = (function(){
         // Define X positions for columns based on your image
         var nameX = panelX_Left + 9*tileSize;   
         var scoreX = panelX_Left + 18*tileSize; 
-        var bonusX = panelX_Left + 27*tileSize; 
+        var bonusX = panelX_Left + 29*tileSize; 
         
 
         ctx.fillText("NICKNAME", nameX, headerY);

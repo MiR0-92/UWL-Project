@@ -30,8 +30,6 @@
       top: 3vh;
       right: 3vw;
       z-index: 1000; /* On top of everything */
-
-      /* Copied from #feedback-button */
       font-family: 'ArcadeR', monospace;
       font-weight: bold;
       color: #111; /* Black text */
@@ -40,12 +38,9 @@
       border-radius: 8px;
       cursor: pointer;
       text-decoration: none;
-
-      /* Sized for a corner button */
       font-size: 4vw; 
       padding: 12px 15px;
     }
-    /* --- END: Full Screen Button Style --- */
 
     h1 {
       font-size: 7vw;
@@ -64,7 +59,6 @@
     }
 
     #lobby-container {
-      /* This will now vertically center the content */
       justify-content: center;
       padding: 2vh 0;
     }
@@ -72,15 +66,9 @@
     #controller-container {
       display: none; /* Hidden by default */
       flex-direction: column;
-      
-      /* --- START OF MODIFICATION --- */
-      /* Align to the top */
       justify-content: flex-start; 
-      /* Push the whole block down from the top */
       padding: 10vh 0 2vh 0; 
-      /* --- END OF MODIFICATION --- */
-      
-      height: 100%; /* Ensure it fills the viewport height */
+      height: 100%; 
       box-sizing: border-box;
     }
 
@@ -92,7 +80,7 @@
 
     #ghost-selector {
       display: flex;
-      flex-direction: column; /* Stack image and text vertically */
+      flex-direction: column; 
       align-items: center;
       justify-content: center;
       margin: 2vh 0;
@@ -118,7 +106,7 @@
     #ghost-image-lobby {
       width: 45vmin;
       height: 45vmin;
-      image-rendering: pixelated; /* Keeps the pixel art sharp */
+      image-rendering: pixelated; 
     }
 
     #ghost-name-lobby {
@@ -133,12 +121,8 @@
     #player-name-lobby {
       width: 70vw;
       max-width: 300px;
-      
-      /* --- START OF MODIFICATION --- */
-      padding: 10px; /* Reduced padding */
-      font-size: 4vw; /* Reduced font size */
-      /* --- END OF MODIFICATION --- */
-
+      padding: 10px; 
+      font-size: 4vw; 
       text-align: center;
       background: #333;
       color: #fff;
@@ -174,31 +158,30 @@
       font-family: 'ArcadeR', monospace;
     }
 
-    /* --- Controller View Styling (Re-ordered) --- */
+    /* --- Controller View Styling --- */
     #player-name-ingame {
       font-size: 7vw;
       font-weight: bold;
       color: #87CEEB; /* Skyblue */
-      margin-bottom: 1vh; /* Add a little space */
+      margin-bottom: 1vh; 
       font-family: 'ArcadeR', monospace;
     }
 
     #ghost-image-ingame {
-      width: 40vmin; /* 4x larger (as requested) */
-      height: 40vmin; /* 4x larger (as requested) */
+      width: 40vmin; 
+      height: 40vmin; 
       image-rendering: pixelated;
     }
     
     #playing-as-text {
       font-size: 5vw;
-      margin: 1vh 0 0 0; /* Add a little space */
+      margin: 1vh 0 0 0; 
       text-transform: capitalize;
       font-family: 'ArcadeR', monospace;
     }
 
     #joystick-container {
       position: relative;
-      /* This creates the gap between the text and the joystick */
       margin-bottom: 3vh; 
       flex-grow: 1;
       display: flex;
@@ -225,7 +208,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      transition: transform 0.05s linear;
+      transition: transform 0.05s linear; /* Slightly faster for snap-back */
     }
 
     #connection-status {
@@ -235,7 +218,7 @@
       font-family: 'ArcadeR', monospace;
     }
     
-    /* --- START: Exit Button Styles --- */
+    /* --- Exit Button Styles --- */
     .exit-btn {
       position: absolute;
       top: 3vh;
@@ -257,11 +240,10 @@
       image-rendering: pixelated;
       margin-bottom: 0.5vh;
     }
-    /* --- END: Exit Button Styles --- */
 
-    /* --- START: Exit Screen Styles --- */
+    /* --- Exit Screen Styles --- */
     #exit-container {
-      display: none; /* Hidden by default */
+      display: none; 
       justify-content: flex-start; 
       padding-top: 10vh; 
       text-align: center;
@@ -269,7 +251,7 @@
     }
     #exit-container h1 {
       font-size: 6vw;
-      color: #FFFF00; /* Pac-Man Yellow */
+      color: #FFFF00; 
       margin-bottom: 4vh;
     }
     #exit-container p {
@@ -285,29 +267,17 @@
       margin-bottom: 8vh; 
     }
 
-    #exit-greeting {
+    #exit-greeting, #exit-score-label {
       font-size: 5vw;
       color: #fff;
       margin: 0;
     }
 
-    #exit-username {
+    #exit-username, #exit-score-value {
       font-size: 6vw;
-      color: #FFFF00; /* Pac-Man Yellow */
+      color: #FFFF00; 
       margin-top: 0.5vh; 
       margin-bottom: 5vh; 
-    }
-
-    #exit-score-label {
-      font-size: 5vw;
-      color: #fff;
-      margin: 0;
-    }
-    
-    #exit-score-value {
-      font-size: 5vw;
-      color: #FFFF00; /* Yellow for score */
-      margin-top: 0.5vh; 
     }
     
     .exit-feedback {
@@ -324,14 +294,13 @@
       font-weight: bold;
       font-family: 'ArcadeR', monospace;
       text-decoration: none;
-      color: #111; /* Black text */
-      background: #FFFF00; /* Pac-Man Yellow */
+      color: #111; 
+      background: #FFFF00; 
       border: none;
       border-radius: 8px;
       cursor: pointer;
       margin-top: 3vh; 
     }
-    /* --- END: Exit Screen Styles --- */
 
   </style>
 </head>
@@ -380,17 +349,14 @@
 
   <div id="exit-container" class="container">
     <p id="exit-countdown"></p>
-  
     <p id="exit-greeting">Thank you for playing</p>
     <h1 id="exit-username">Player</h1>
-    
     <p id="exit-score-label">Your score is:</p>
     <p id="exit-score-value">0</p>
-    
     <p class="exit-feedback">Would you like to leave some feedback?</p>
-
     <a href="https://forms.gle/LyftbtqTAmJqrXBh7" target="_blank" id="feedback-button">HERE!</a>
   </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
@@ -416,17 +382,14 @@
     const base = document.getElementById('joystick-base');
     const stick = document.getElementById('joystick-stick');
     
-    // --- START: New Exit Elements ---
+    // Exit Elements
     const exitButton = document.getElementById('exit-button');
     const exitContainer = document.getElementById('exit-container');
-    
     const exitCountdown = document.getElementById('exit-countdown'); 
     const exitGreeting = document.getElementById('exit-greeting');
     const exitUsername = document.getElementById('exit-username');
     const exitScoreLabel = document.getElementById('exit-score-label');
     const exitScoreValue = document.getElementById('exit-score-value');
-    // --- END: New Exit Elements ---
-
 
     // --- State Variables ---
     const GHOSTS = [
@@ -436,86 +399,78 @@
       { name: 'clyde', path: '/images/clyde.png' }
     ];
     let currentGhostIndex = 0;
-    let takenGhosts = {}; // { blinky: { name: "Player1" }, pinky: null, ... }
+    let takenGhosts = {};
     let myGhostName = null;
-
-    let baseCenterX, baseCenterY;
-    let maxDistance;
-    let deadZone;
-    let currentDirection = null;
-    let activeTouchId = null;
     let countdownInterval = null; 
+
+    // --- NEW: SWIPE CONTROL VARIABLES ---
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let activeTouchId = null;
+    let currentDirection = null;
     
+    // Sensitivity: How many pixels you must drag to register a turn
+    const SWIPE_THRESHOLD = 35; 
+    let maxVisualDistance = 50; // Radius limit for the visual stick
+
     // --- View Switching ---
     function showLobby() {
       lobbyContainer.style.display = 'flex';
       controllerContainer.style.display = 'none';
-      exitContainer.style.display = 'none'; // Hide exit screen
+      exitContainer.style.display = 'none';
       if (countdownInterval) clearInterval(countdownInterval); 
       lobbyStatus.textContent = '';
-      updateGhostSelector(); // Re-check ghost availability
+      updateGhostSelector();
     }
 
     function showController(player) {
       lobbyContainer.style.display = 'none';
       controllerContainer.style.display = 'flex';
-      exitContainer.style.display = 'none'; // Hide exit screen
+      exitContainer.style.display = 'none';
       
       myGhostName = player.ghost;
       const ghostData = GHOSTS.find(g => g.name === player.ghost);
       
-      // Populate player info
       playerNameIngame.textContent = player.name;
       ghostImageIngame.src = ghostData.path;
       ghostNameIngame.textContent = player.ghost;
 
-      // We MUST re-initialize the joystick here, *after* it becomes visible
-      // Otherwise, getBoundingClientRect() returns zeros.
-      // A small delay ensures the browser has rendered it.
-      setTimeout(initializeJoystick, 50);
+      // Recalculate visual bounds
+      setTimeout(initializeVisuals, 50);
     }
     
-    // --- MODIFIED: New Exit Screen Function ---
     function showExitScreen(score) {
       lobbyContainer.style.display = 'none';
       controllerContainer.style.display = 'none';
-      exitContainer.style.display = 'flex'; // Show exit screen
+      exitContainer.style.display = 'flex';
 
-      // MODIFIED: Set new text elements
       const playerName = playerNameIngame.textContent;
-      exitUsername.textContent = playerName; // Just set the username
-      exitScoreValue.textContent = score; // Just set the score
+      exitUsername.textContent = playerName;
+      exitScoreValue.textContent = score;
 
-      // --- START COUNTDOWN LOGIC ---
       let countdownValue = 15;
       exitCountdown.textContent = `Exiting in ${countdownValue}...`;
 
-      if (countdownInterval) clearInterval(countdownInterval); // Clear any old timer
+      if (countdownInterval) clearInterval(countdownInterval);
       countdownInterval = setInterval(() => {
         countdownValue--;
         exitCountdown.textContent = `Exiting in ${countdownValue}...`;
 
         if (countdownValue <= 0) {
           clearInterval(countdownInterval);
-          // We can't close the window, so we'll redirect to the lobby
           window.location.href = '/join'; 
         }
       }, 1000);
-      // --- END COUNTDOWN LOGIC ---
 
-      // Disconnect from server
       socket.disconnect();
     }
-    // --- END: New Exit Screen Function ---
-
 
     // --- Lobby Logic ---
     function updateGhostSelector() {
       const ghost = GHOSTS[currentGhostIndex];
       ghostImageLobby.src = ghost.path;
-      ghostNameLobby.textContent = `playing as ${ghost.name}`; // Update text
+      ghostNameLobby.textContent = `playing as ${ghost.name}`;
 
-      // Check if this ghost is taken
       if (takenGhosts[ghost.name]) {
         joinButton.disabled = true;
         joinButton.textContent = 'TAKEN';
@@ -537,53 +492,41 @@
       updateGhostSelector();
     });
 
-    // --- MODIFIED: Add join validation ---
     playerNameInput.addEventListener('input', () => {
-        lobbyStatus.textContent = ''; // Clear error on typing
+        lobbyStatus.textContent = '';
     });
 
     joinButton.addEventListener('click', () => {
-        const playerName = playerNameInput.value; // Get raw value
+        const playerName = playerNameInput.value;
         const ghostName = GHOSTS[currentGhostIndex].name;
         
-        // 1. Check for empty name
         if (playerName.trim().length === 0) {
             lobbyStatus.textContent = 'Please enter a name!';
             return;
         }
-
-        // 2. Check for length
-        if (playerName.length > 6) {
-            lobbyStatus.textContent = 'Name must be 6 characters or less.';
+        if (playerName.length >= 8) {
+            lobbyStatus.textContent = 'Name must be 7 characters or less.';
             return;
         }
-
-        // 3. Check for spaces
         if (/\s/.test(playerName)) {
             lobbyStatus.textContent = 'Spaces are not allowed.';
             return;
         }
-
-        // 4. Check for special symbols (any non-letter/non-number)
         if (/[^a-zA-Z0-9]/.test(playerName)) {
             lobbyStatus.textContent = 'Special symbols are forbidden.';
             return;
         }
 
-        // If all checks pass:
         lobbyStatus.textContent = `Joining as ${ghostName}...`;
         joinButton.disabled = true;
         
         socket.emit('join-request', { name: playerName.trim(), ghost: ghostName });
     });
-    // --- END: Add join validation ---
-
 
     // --- Socket Handlers ---
     socket.on('connect', () => {
       statusText.textContent = 'Connected!';
       statusText.style.color = 'lime';
-      // Ask server for the current ghost status
       socket.emit('controller-ready');
     });
     
@@ -591,7 +534,6 @@
       statusText.textContent = 'Disconnected';
       statusText.style.color = 'red';
       myGhostName = null;
-      // Only show lobby if we are not *intentionally* on the exit screen
       if (exitContainer.style.display === 'none') {
         showLobby();
       }
@@ -599,33 +541,26 @@
 
     socket.on('ghost-status', (status) => {
       takenGhosts = status;
-      // If we are in the lobby, update the selector
       if (controllerContainer.style.display === 'none' && exitContainer.style.display === 'none') {
         updateGhostSelector();
       }
     });
 
     socket.on('join-success', (player) => {
-      // Server confirmed our join request
       showController(player);
     });
 
     socket.on('join-error', (data) => {
-      // Server rejected our join request
       lobbyStatus.textContent = data.message;
-      joinButton.disabled = false; // Re-enable button
-      // We removed updateGhostSelector() from here to prevent it from clearing the error message
+      joinButton.disabled = false;
     });
 
-    // --- START: New Score Receiver ---
     socket.on('receive-exit-data', (data) => {
       showExitScreen(data.score);
     });
-    // --- END: New Score Receiver ---
 
-    // --- Socket Emitter (Joystick) ---
     const sendDirection = (dir, pressed) => {
-      if (dir && myGhostName) { // Only send if we are in-game
+      if (dir && myGhostName) {
         socket.emit('control', { 
           direction: dir, 
           pressed: pressed 
@@ -633,143 +568,149 @@
       }
     };
 
-    // --- Joystick Logic (Copied from original) ---
-    function getDirection(dx, dy) {
-      if (Math.abs(dx) < deadZone && Math.abs(dy) < deadZone) return null;
-      if (Math.abs(dx) > Math.abs(dy)) {
-        return (dx > 0) ? 'right' : 'left';
-      } else {
-        return (dy > 0) ? 'down' : 'up';
-      }
+    // --- NEW: SWIPE LOGIC IMPLEMENTATION ---
+
+    // Sets up visual bounds for the joystick graphic
+    function initializeVisuals() {
+      if (!base.offsetParent) return;
+      // Calculate how far the stick can visually move inside the base
+      maxVisualDistance = base.offsetWidth / 2 - stick.offsetWidth / 2;
     }
 
-    function initializeJoystick() {
-      if (!base.offsetParent) return; // Don't run if hidden
-      const baseRect = base.getBoundingClientRect();
-      baseCenterX = baseRect.left + baseRect.width / 2;
-      baseCenterY = baseRect.top + baseRect.height / 2;
-      maxDistance = base.offsetWidth / 2 - stick.offsetWidth / 2;
-      deadZone = maxDistance * 0.2;
+    function handleTouchStart(e) {
+        if (controllerContainer.style.display === 'none') return;
+        
+        // Check if touching a button (Exit/Fullscreen)
+        if (e.target.closest('button')) return;
+
+        e.preventDefault();
+        
+        // Only track one finger
+        if (activeTouchId !== null) return;
+        
+        const touch = e.changedTouches[0];
+        activeTouchId = touch.identifier;
+        
+        // Set the "Anchor" point where the finger landed
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        
+        // Visually center the stick (reset)
+        stick.style.transform = 'translate(-50%, -50%)';
     }
 
-    function moveStick(clientX, clientY) {
-      const dx = clientX - baseCenterX;
-      const dy = clientY - baseCenterY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx);
-      
-      const stickDistance = Math.min(distance, maxDistance);
-      const stickPosX = Math.cos(angle) * stickDistance;
-      const stickPosY = Math.sin(angle) * stickDistance;
+    function handleTouchMove(e) {
+        if (controllerContainer.style.display === 'none') return;
+        e.preventDefault(); // Prevent scrolling
+        if (activeTouchId === null) return;
+        
+        const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
+        if (!touch) return;
 
-      stick.style.transform = `translate(calc(-50% + ${stickPosX}px), calc(-50% + ${stickPosY}px))`;
+        const currentX = touch.clientX;
+        const currentY = touch.clientY;
 
-      const newDirection = getDirection(dx, dy);
-      if (newDirection !== currentDirection) {
-        sendDirection(currentDirection, false);
-        sendDirection(newDirection, true);
-        currentDirection = newDirection;
-      }
+        // Calculate offset from the Anchor
+        const diffX = currentX - touchStartX;
+        const diffY = currentY - touchStartY;
+        const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+
+        // 1. UPDATE VISUAL STICK (clamped to base)
+        const angle = Math.atan2(diffY, diffX);
+        const visualDist = Math.min(distance, maxVisualDistance);
+        const stickX = Math.cos(angle) * visualDist;
+        const stickY = Math.sin(angle) * visualDist;
+        stick.style.transform = `translate(calc(-50% + ${stickX}px), calc(-50% + ${stickY}px))`;
+
+        // 2. CHECK IF THRESHOLD PASSED (The "Swipe")
+        if (distance > SWIPE_THRESHOLD) {
+            let direction = null;
+
+            // Determine dominant direction
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                direction = diffX > 0 ? 'right' : 'left';
+            } else {
+                direction = diffY > 0 ? 'down' : 'up';
+            }
+
+            if (direction) {
+                // Send the new direction
+                if (direction !== currentDirection) {
+                    // Optional: Send "release" for old direction if needed, but Pacman usually just needs the new one
+                    if (currentDirection) sendDirection(currentDirection, false); 
+                    
+                    sendDirection(direction, true);
+                    currentDirection = direction;
+                }
+            }
+
+            // 3. ANCHOR RESET (The Key Feature)
+            // We reset the center to the current finger position.
+            // This allows the user to immediately turn (L-shape) without lifting.
+            touchStartX = currentX;
+            touchStartY = currentY;
+            
+            // 4. VISUAL SNAP BACK
+            // Snap the stick back to center to give tactile feedback that the turn registered.
+            stick.style.transform = 'translate(-50%, -50%)';
+        }
     }
 
-    // --- START: Exit Button Logic (Moved Before Touch Listeners) ---
-    // MODIFIED: This now works for both click and touchstart
+    function handleTouchEnd(e) {
+        if (controllerContainer.style.display === 'none') return;
+        
+        // Check if touching buttons
+        if (e.target.closest('button')) return;
+        
+        const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
+        if (!touch) return;
+
+        // Reset state
+        activeTouchId = null;
+        stick.style.transform = 'translate(-50%, -50%)'; // Visual reset
+        
+        // Optional: clear direction on release? 
+        // usually better to leave it for Pacman so he keeps moving
+        if (currentDirection) {
+            // sendDirection(currentDirection, false); // Uncomment if you want to stop on release
+            // currentDirection = null; 
+        }
+    }
+
+    // Attach Listeners
+    document.body.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.body.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.body.addEventListener('touchend', handleTouchEnd);
+    document.body.addEventListener('touchcancel', handleTouchEnd);
+    window.addEventListener('resize', initializeVisuals);
+
+
+    // --- Exit Button Logic ---
     exitButton.addEventListener('click', (e) => {
-      e.preventDefault(); // Prevent any double-event issues
+      e.preventDefault(); 
       statusText.textContent = 'Leaving...';
-      // Ask server to get our score and disconnect us
       socket.emit('client-leave-request');
     });
-    // --- END: Exit Button Logic ---
 
-    document.body.addEventListener('touchstart', (e) => {
-      // --- MODIFIED: Check if the touch is on the exit button ---
-      if (e.target === exitButton || exitButton.contains(e.target)) {
-        return; // Let the 'click' event handle it
-      }
-      // --- End of Fix ---
-
-      // --- START: Check if touch is on the fullscreen button ---
-      const fsBtn = document.getElementById('fullscreen-btn');
-      if (e.target === fsBtn || fsBtn.contains(e.target)) {
-        return; // Let the 'click' event handle it
-      }
-      // --- END: Check ---
-
-      if (controllerContainer.style.display === 'none') return; // Ignore touches in lobby
-      e.preventDefault();
-      if (activeTouchId !== null) return;
-      const touch = e.changedTouches[0];
-      activeTouchId = touch.identifier;
-      moveStick(touch.clientX, touch.clientY);
-    }, { passive: false });
-
-    document.body.addEventListener('touchmove', (e) => {
-      if (controllerContainer.style.display === 'none') return;
-      e.preventDefault();
-      if (activeTouchId === null) return;
-      const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
-      if (!touch) return;
-      moveStick(touch.clientX, touch.clientY);
-    }, { passive: false });
-
-    function onTouchEnd(e) {
-      if (controllerContainer.style.display === 'none') return;
-      
-      // --- MODIFIED: Check if the touch end is for the exit button ---
-      if (e.target === exitButton || exitButton.contains(e.target)) {
-        return; // Let the 'click' event handle it
-      }
-      // --- End of Fix ---
-
-      // --- START: Check if touch end is on the fullscreen button ---
-      const fsBtn = document.getElementById('fullscreen-btn');
-      if (e.target === fsBtn || fsBtn.contains(e.target)) {
-        return; // Let the 'click' event handle it
-      }
-      // --- END: Check ---
-      
-      e.preventDefault();
-      if (activeTouchId === null) return;
-      const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
-      if (!touch) return;
-
-      activeTouchId = null;
-      stick.style.transform = 'translate(-50%, -50%)';
-      
-      if (currentDirection) {
-        sendDirection(currentDirection, false);
-        currentDirection = null;
-      }
-    }
-
-    document.body.addEventListener('touchend', onTouchEnd);
-    document.body.addEventListener('touchcancel', onTouchEnd);
-
-    window.addEventListener('resize', initializeJoystick);
-    
     // --- Initial Setup ---
-    showLobby(); // Start on the lobby screen
+    showLobby(); 
 
   </script>
 
   <script>
     document.getElementById('fullscreen-btn').addEventListener('click', function() {
-      var elem = document.documentElement; // Get the whole <html> element
-      
+      var elem = document.documentElement; 
       if (elem.requestFullscreen) {
         elem.requestFullscreen();
-      } else if (elem.mozRequestFullScreen) { // Firefox
+      } else if (elem.mozRequestFullScreen) { 
         elem.mozRequestFullScreen();
-      } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
+      } else if (elem.webkitRequestFullscreen) { 
         elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { // IE/Edge
+      } else if (elem.msRequestFullscreen) { 
         elem.msRequestFullscreen();
       }
-  
-      // Optional: You could hide the button after it's clicked
       this.style.display = 'none'; 
     });
   </script>
-  </body>
+</body>
 </html>
