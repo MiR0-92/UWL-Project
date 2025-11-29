@@ -237,9 +237,9 @@ socket.on('join-request', (data) => {
     });
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-    console.log(`Pac-Man is running!`);
+    console.log(`Cookie-Eater is running!`);
     console.log(`- Game: http://localhost:${PORT}`);
     console.log(`- Controller: http://localhost:${PORT}/join`);
 });
