@@ -20,14 +20,14 @@ var energizer = (function() {
         'monsterkill'   // 8
     ];
     const STREAK_TEXTS = [
-        'FIRSTBLOOD!',
-        'DOUBLEKILL!',
+        'FIRST-BLOOD!',
+        'DOUBLE-KILL!',
         'MULTI-KILL!',
         'ULTRA-KILL!',
         'RAMPAGE!',
         'UNSTOPPABLE!',
         'GODLIKE!',
-        'MONSTERKILL!'
+        'MONSTER-KILL!'
     ];
 
     // Timer durations in frames (60 frames = 1 second)

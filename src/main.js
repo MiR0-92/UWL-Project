@@ -80,6 +80,29 @@ var audioUnlocked = false;
         if (ghost) {
             ghost.playerName = playerName; // This is all we need to do now
             console.log('Player ' + playerName + ' took control of ' + ghostName);
+            ghost.visible = true; 
+
+            // --- FIX 2: "Exact Moment of Death" Reset ---
+            if (ghost.mode === GHOST_EATEN) {
+                console.log("Joined during death freeze. Forcing reset.");
+                ghost.reset();          
+                ghost.scared = false;   
+                ghost.eaten = false;
+                
+                // --- CORRECTED LOGIC HERE ---
+                // 1. We REMOVED the bad line: ghost.mode = GHOST_SCATTER;
+                
+                // 2. If the reset put the ghost inside the house (Pinky/Inky/Clyde),
+                //    force them to leave immediately so the player doesn't wait.
+                if (ghost.mode === GHOST_PACING_HOME || ghost.mode === GHOST_ENTERING_HOME) {
+                    ghost.leaveHome(); 
+                }
+                
+                // 3. If it is Blinky, he spawns outside, so ensure mode is correct.
+                if (ghostName === 'blinky') {
+                    ghost.mode = GHOST_OUTSIDE;
+                }
+            }
             
             // Check if ghost is outside the base.
             // If it's not (i.e., it's respawning), let the AI keep control.
