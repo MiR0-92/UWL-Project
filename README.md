@@ -55,8 +55,9 @@ The game originally used MS_PACMAN mode, with 4 maze stages, where I decided to 
 
 Power pills originally stop working in level 21, where, in this fork of the game, power pills have 3 3-second power effect after level 18.
 
-# Note:
-The QR code system is not implemented!
+# Dynamic QR Code:
+The QR code changes automatically based on your IP.
+
 
 
 
