@@ -1,4 +1,4 @@
-Cookie-Eater (Multiplayer Pac-Man)
+# Cookie-Eater (Multiplayer Pac-Man)
 
     ⚠️ Attribution & Disclaimer
 
