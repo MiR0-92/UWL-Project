@@ -54,11 +54,12 @@ window.addEventListener("load", function () {
     clyde: clyde,
   };
 
+  var socket = io();
+  // The fix: Listen for 'connect' so it runs every time the server restarts
   socket.on("connect", function () {
     console.log("Connected to server. Identifying as Game Host...");
     socket.emit("game-ready");
   });
-
   // --- START OF MODIFICATION ---
   // All HTML panel update functions have been removed.
   // We will still store ghost names for the new UI.
