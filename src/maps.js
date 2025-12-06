@@ -253,14 +253,14 @@ var getMsPacActColor = function(act) {
     if (act >= 4) {
         return [
             {
-                wallFillColor: "#ffb8ff",
+                wallFillColor: "#FF0000",
                 wallStrokeColor: "#FFFF00",
                 pelletColor: "#00ffff",
             },
             {
-                wallFillColor: "#FFB8AE",
-                wallStrokeColor: "#FF0000",
-                pelletColor: "#dedeff",
+                wallFillColor: "#ffffffff",
+                wallStrokeColor: "#ff0000",
+                pelletColor: "#2121ff",
             },
             {
                 wallFillColor: "#de9751",
@@ -285,17 +285,76 @@ var getMsPacActColor = function(act) {
 
 var setNextMsPacMap = function() {
     var maps = [mapMsPacman1, mapMsPacman2, mapMsPacman3, mapMsPacman4];
+    var currentAct = getLevelAct(level); // Get the current act number
 
-    // The third and fourth maps repeat indefinitely after the second map.
-    // (i.e. act1=map1, act2=map2, act3=map3, act4=map4, act5=map3, act6=map4, ...)
-    var act = getLevelAct(level)-1;
-    var mapIndex = (act <= 1) ? act : (act%2)+2;
-    map = maps[mapIndex];
-    if (act >= 4) {
-        var colors = getMsPacActColor(act+1);
+    if (level >= 14) {
+        // Pick a number between 0 and 5
+        var r = Math.floor(Math.random() * 6);
+
+        if (r < 4) {
+            // 0-3: Pick one of the standard Ms. Pac-Man maps
+            map = maps[r];
+        } else if (r === 4) {
+            // 4: Pick the Original Pac-Man Map
+            map = mapPacman;
+            // Important: Assign fruit paths so the game doesn't crash in Ms. Pac-Man mode
+            map.fruitPaths = mapMsPacman1.fruitPaths; 
+        } else {
+            // 5: Generate a brand new random map (Cookie-Man style)
+            map = mapgen();
+        }
+
+        // Apply the high-level flashing colors defined for Acts 5+
+        var colors = getMsPacActColor(currentAct);
         map.wallFillColor = colors.wallFillColor;
         map.wallStrokeColor = colors.wallStrokeColor;
         map.pelletColor = colors.pelletColor;
+
+        return; // Exit here so we don't run the old logic
+    }
+
+    if (currentAct == 4) {
+        // --- START OF YOUR CUSTOM ACT 4 LOGIC ---
+        // Act 4 includes levels 10, 11, 12, and 13.
+        
+        if (level == 10) {
+            map = mapMsPacman3; 
+        } else if (level == 11) {
+            map = mapPacman;    
+            // --- FIX: ADD FRUIT PATHS ---
+            // Copy fruit paths from another map, since mapPacman doesn't have them.
+            // This is safe because they share the same tunnel locations.
+            map.fruitPaths = mapMsPacman1.fruitPaths; //
+            // --- END OF FIX ---
+
+        } else if (level == 12) {
+            map = mapgen();     // mapgen() already adds its own fruitPaths
+        } else if (level == 13) {
+            map = mapMsPacman4; 
+        }
+        
+        // Set the colors for this act
+        var colors = getMsPacActColor(currentAct);
+        map.wallFillColor = colors.wallFillColor;
+        map.wallStrokeColor = colors.wallStrokeColor;
+        map.pelletColor = colors.pelletColor;
+        
+        // --- END OF YOUR CUSTOM LOGIC ---
+
+    } else {
+        
+        // Original logic for all other acts (1, 2, 3, and 5+)
+        var act = currentAct - 1;
+        var mapIndex = (act <= 1) ? act : (act%2)+2;
+        map = maps[mapIndex];
+        
+        // The original logic for acts 5+ (act index 4+)
+        if (act >= 4) { 
+            var colors = getMsPacActColor(act+1);
+            map.wallFillColor = colors.wallFillColor;
+            map.wallStrokeColor = colors.wallStrokeColor;
+            map.pelletColor = colors.pelletColor;
+        }
     }
 };
 
@@ -338,8 +397,8 @@ var mapMsPacman1 = new Map(28, 36, (
     "____________________________"));
 
 mapMsPacman1.name = "Ms. Pac-Man 1";
-mapMsPacman1.wallFillColor = "#FFB8AE";
-mapMsPacman1.wallStrokeColor = "#FF0000";
+mapMsPacman1.wallFillColor = "#ff0000ff";
+mapMsPacman1.wallStrokeColor = "#ffb851";
 mapMsPacman1.pelletColor = "#dedeff";
 mapMsPacman1.fruitPaths = {
              "entrances": [

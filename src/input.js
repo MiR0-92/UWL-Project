@@ -47,7 +47,8 @@
     var keyStates = {};
 
     // hook my key listeners to the window's listeners
-    window.addEventListener("keydown", function(e) {
+    // Uncomment to enable keyboard inputs.
+   /*  window.addEventListener("keydown", function(e) {
         var key = (e||window.event).keyCode;
 
         // only execute at first press event
@@ -61,7 +62,7 @@
 
         keyStates[key] = false;
         keyUpListeners.exec(key, e);
-    });
+    }); */
 
 
     // key enumerations

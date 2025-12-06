@@ -1166,6 +1166,15 @@ var newGameState = (function() {
             setScore(0);
             setFruitFromGameMode();
             readyNewState.init();
+            // Explicitly reset ghost speed levels for a new game
+            for (var i = 0; i < ghosts.length; i++) {
+                ghosts[i].speedLevel = 0;
+            }
+
+            for (var i = 0; i < ghosts.length; i++) {
+                ghosts[i].score = 0; // Set the score to 0
+                updateGhostDisplay(ghosts[i]);
+            }
         },
         setStartLevel: function(i) {
             startLevel = i;
@@ -1175,8 +1184,8 @@ var newGameState = (function() {
                 return;
             renderer.blitMap();
             renderer.drawScore();
-            renderer.drawMessage("PLAYER ONE", "#0FF", 9, 14);
-            renderer.drawReadyMessage();
+            renderer.drawMessage(" CATCH ME", "#0FF", 9, 14);
+            renderer.drawMessage("IF YOU CAN!", "#0FF", 8.5, 20);
         },
         update: function() {
             if (frames == duration*60) {
@@ -1234,6 +1243,8 @@ var readyState =  (function(){
 var readyNewState = newChildObject(readyState, {
 
     init: function() {
+        audio.stopAllLoops();
+        audio.play('start');
 
         // increment level and ready the next map
         level++;
@@ -1241,6 +1252,16 @@ var readyNewState = newChildObject(readyState, {
             map = mapPacman;
         }
         else if (gameMode == GAME_MSPACMAN || gameMode == GAME_OTTO) {
+            if (gameMode == GAME_MSPACMAN) {
+                if (level == 11) {
+                    // We are about to start level 11, use Pac-Man's static fruit
+                    fruit = pacfruit;
+                } else if (level == 12) {
+                    // We are about to start level 12 (after level 11), 
+                    // switch back to Ms. Pac-Man's moving fruit
+                    fruit = mspacfruit;
+                }
+            }
             setNextMsPacMap();
         }
         else if (gameMode == GAME_COOKIE) {
@@ -1249,7 +1270,7 @@ var readyNewState = newChildObject(readyState, {
         map.resetCurrent();
         fruit.onNewLevel();
         renderer.drawMap();
-
+        playLevelMusic(level);
         // notify other objects of new level
         ghostReleaser.onNewLevel();
         elroyTimer.onNewLevel();
@@ -1266,6 +1287,9 @@ var readyNewState = newChildObject(readyState, {
 var readyRestartState = newChildObject(readyState, {
 
     init: function() {
+        audio.stopAllLoops();
+        audio.play('start');
+        playLevelMusic(level);
         extraLives--;
         ghostReleaser.onRestartLevel();
         elroyTimer.onRestartLevel();
@@ -1282,6 +1306,7 @@ var readyRestartState = newChildObject(readyState, {
 
 var playState = {
     init: function() { 
+        this.sirenStarted = false;
         if (practiceMode) {
             vcr.reset();
         }
@@ -1290,6 +1315,13 @@ var playState = {
         renderer.setLevelFlash(false);
         renderer.blitMap();
         renderer.drawScore();
+if (energizer.killStreakText && energizer.killStreakTextTimer > 0) {
+            var text = energizer.killStreakText;
+            // Calculate the starting 'x' tile to center the text
+            var x_tile_start = 14 - (text.length / 2); 
+            // Draw at row -2 (two rows *above* the "1UP" text)
+            renderer.drawMessage(text, "#F00", x_tile_start, -2);
+        }
         renderer.beginMapClip();
         renderer.drawFruit();
         renderer.drawPaths();
@@ -1300,20 +1332,52 @@ var playState = {
 
     // handles collision between pac-man and ghosts
     // returns true if collision happened
-    isPacmanCollide: function() {
+isPacmanCollide: function() {
         var i,g;
         for (i = 0; i<4; i++) {
             g = ghosts[i];
+            
+            // Check for collision and that ghost is not in a "safe" mode
             if (g.tile.x == pacman.tile.x && g.tile.y == pacman.tile.y && g.mode == GHOST_OUTSIDE) {
-                if (g.scared) { // eat ghost
+                
+                // Case 1: Ghost is scared (Pac-Man eats ghost)
+                if (g.scared) {
                     energizer.addPoints();
                     g.onEaten();
+                    return true; // Collision happened, stop processing
                 }
-                else if (pacman.invincible) // pass through ghost
-                    continue;
-                else // killed by ghost
+                
+                // Case 2: Pac-Man is invincible
+                else if (pacman.invincible) {
+                    continue; // Ignore this ghost and check the next one
+                }
+
+                // Case 3: Pac-Man is killed by the ghost
+                else {
+                    var pacScore = getScore();
+                    
+                    // --- NaN Safety Check ---
+                    // This prevents NaN if scores somehow get corrupted
+                    if (isNaN(pacScore)) {
+                        pacScore = 0;
+                    }
+                    if (isNaN(g.score)) {
+                        g.score = 0;
+                    }
+                    // --- End Safety Check ---
+
+                    g.score += pacScore;
+                    setScore(0);
+                    updateGhostDisplay(g);
+                    // Increase ghost speed level, max of 4
+                    if (g.speedLevel < 4) {
+                        g.speedLevel++;
+                        console.log(g.name + " speed level increased to: " + g.speedLevel);
+                    }
+                    updateGhostDisplay(g);
                     switchState(deadState);
-                return true;
+                    return true; // Collision happened, stop processing
+                }
             }
         }
         return false;
@@ -1346,13 +1410,21 @@ var playState = {
             else { // make ghosts go home immediately after points disappear
                 for (i=0; i<4; i++)
                     if (ghosts[i].mode == GHOST_EATEN) {
+                        audio.play('eyes', true);
                         ghosts[i].mode = GHOST_GOING_HOME;
                         ghosts[i].targetting = 'door';
                     }
             }
             
             if (!skip) {
-
+                if (!this.sirenStarted && (pacman.inputDirEnum !== undefined || AutoPilot) && 
+                    !energizer.isActive() && pacman.speedBoostTimer === 0 && pacman.invincibleTimer === 0) 
+                {
+                    // If the player has tried to move (or AI is on),
+                    // and no other high-priority sounds are playing, start the siren.
+                    audio.play('siren', true);
+                    this.sirenStarted = true;
+                }    
                 // update counters
                 ghostReleaser.update();
                 ghostCommander.update();
@@ -1497,6 +1569,10 @@ var deadState = (function() {
         triggers: {
             0: { // freeze
                 update: function() {
+                    audio.stop('siren');  
+                    audio.stop('fright');
+                    audio.stopMusic();
+                    audio.play('death');
                     var i;
                     for (i=0; i<4; i++) 
                         actors[i].frames++; // keep animating ghosts
@@ -1518,6 +1594,10 @@ var deadState = (function() {
                 },
             },
             120: {
+                init: function() {
+                    // REPLACE 'death_spinning' with the name you used in audio.js
+                    audio.play('death_spinning'); 
+                },
                 draw: function(t) { // dying animation
                     commonDraw();
                     renderer.beginMapClip();
@@ -1574,7 +1654,11 @@ var finishState = (function(){
 
         // script functions for each time
         triggers: {
-            0:   { draw: function() {
+            0:   {
+                init: function() {   
+                    audio.stopAllLoops();
+                },
+                 draw: function() {
                     renderer.setLevelFlash(false);
                     renderer.blitMap();
                     renderer.drawScore();
@@ -1584,7 +1668,10 @@ var finishState = (function(){
                     renderer.drawTargets();
                     renderer.endMapClip();
             } },
-            120:  { draw: function() { flashFloorAndDraw(true); } },
+            120:  { init: function() {
+                    audio.play('level_complete');
+                },
+                 draw: function() { flashFloorAndDraw(true); } },
             132: { draw: function() { flashFloorAndDraw(false); } },
             144: { draw: function() { flashFloorAndDraw(true); } },
             156: { draw: function() { flashFloorAndDraw(false); } },
@@ -1611,6 +1698,9 @@ var overState = (function() {
     var frames;
     return {
         init: function() {
+            audio.stop('siren');
+            audio.stopMusic();
+            checkGhostHighScores();
             frames = 0;
             var now = Date.now();
             var gameInfo = {
@@ -1629,11 +1719,112 @@ var overState = (function() {
         },
         update: function() {
             if (frames == 120) {
-                switchState(newGameState);
+                switchState(leaderboardState);
             }
             else
                 frames++;
         },
     };
 })();
+// Leaderboard State
+// (state to show player scores after game over)
 
+var leaderboardState = (function() {
+    var frames;
+    var durationInSeconds = 10;
+    var ranks = ["1ST", "2ND", "3RD", "4TH", "5TH", "6TH", "7TH", "8TH", "9TH", "10TH"];
+    var defaultNames = {};
+
+    // Create a map to get ghost objects by name for drawing sprites
+    var ghostObjects = {
+        'blinky': blinky,
+        'pinky': pinky,
+        'inky': inky,
+        'clyde': clyde
+    };
+
+    return {
+        init: function() {
+            frames = 0;
+            // Get the default AI names for the current game mode
+            var names = getGhostNames(); //
+            defaultNames = {
+                'blinky': names[0].toUpperCase(),
+                'pinky':  names[1].toUpperCase(),
+                'inky':   names[2].toUpperCase(),
+                'clyde':  names[3].toUpperCase()
+            };
+        },
+draw: function() {
+            renderer.clearMapFrame();
+            
+            var ctx = renderer.renderFunc(function(ctx) {
+                // --- Draw Title ---
+                ctx.font = tileSize * 2 + "px ArcadeR";
+                ctx.textBaseline = "top";
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#0FF"; // "HIGH SCORES" color
+                ctx.fillText("HIGH SCORES", mapWidth / 2, 3 * tileSize);
+
+                // --- Draw Headers ---
+                ctx.font = tileSize + "px ArcadeR";
+                ctx.fillStyle = "#FFF";
+                var y = 9 * tileSize;
+                
+                // --- START OF LAYOUT MODIFICATION ---
+                var xRank = 2 * tileSize;  // Moved left
+                var xGhost = 7 * tileSize; // Moved left
+                var xName = 14 * tileSize; // Kept this
+                var xScore = 27 * tileSize; // Moved right to the edge
+                // --- END OF LAYOUT MODIFICATION ---
+
+                ctx.textAlign = "left";
+                ctx.fillText("RANK", xRank, y);
+                ctx.fillText("GHOST", xGhost, y);
+                ctx.fillText("NAME", xName, y);
+                ctx.textAlign = "right";
+                ctx.fillText("SCORE", xScore, y);
+
+                // --- Draw Scores from persistent list ---
+                
+                // (This replaces the old logic that sorted the 'ghosts' array)
+                for (var i = 0; i < ghostHighScores.length; i++) {
+                    var entry = ghostHighScores[i];
+                    var ghost = ghostObjects[entry.ghost]; // Get ghost object for its color
+                    var rank = ranks[i];
+                    var name = entry.name.slice(0, 14); // Truncate name to 8 chars
+                    var score = entry.score || 0;
+                    
+                    // Use tighter vertical spacing to fit 10
+                    var yPos = (12 + i * 2) * tileSize; 
+
+                    // 1. Draw Rank
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = (i === 0) ? "#FF0" : "#FFF"; // Gold for 1st place
+                    ctx.fillText(rank, xRank, yPos);
+
+                    // 2. Draw Ghost Sprite
+                    if (ghost) { // Check if ghost exists (for safety)
+                        atlas.drawGhostSprite(ctx, xGhost + tileSize, yPos + midTile.y, 0, DIR_RIGHT, false, false, false, ghost.color);
+                    }
+
+                    // 3. Draw Name
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillText(name, xName, yPos);
+
+                    // 4. Draw Score
+                    ctx.textAlign = "right";
+                    ctx.fillStyle = "#FFFF00"; // Yellow for score
+                    ctx.fillText(score, xScore, yPos);
+                }
+            });
+        },
+        update: function() {
+            frames++;
+            // Wait 15 seconds (at 60fps) then restart the game
+            if (frames == durationInSeconds * 60) {
+                switchState(newGameState);
+            }
+        },
+    };
+})();

@@ -156,8 +156,8 @@ Actor.prototype.getStepSizeFromTable = (function(){
                          // LEVELS 21+
     "1111211111112111" + // pac-man (normal)
     "1111211112111121" + // ghosts (normal)
-    "0000000000000000" + // pac-man (fright) N/A
-    "0000000000000000" + // ghosts (fright)  N/A
+    "1121112111211121" + // pac-man (fright) <--- CHANGED from 0000...
+    "0111011101110111" + // ghosts (fright)  <--- CHANGED from 0000...
     "0110110101101101" + // ghosts (tunnel)
     "1121112111211121" + // elroy 1
     "1121121121121121"); // elroy 2

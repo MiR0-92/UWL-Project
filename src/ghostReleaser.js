@@ -104,6 +104,19 @@ var ghostReleaser = (function(){
         update: function() {
             var g;
 
+            if (window.player_controls_blinky && ghosts[0].mode == GHOST_PACING_HOME) {
+                ghosts[0].leaveHome(); // Release Blinky
+            }
+            if (window.player_controls_pinky && ghosts[1].mode == GHOST_PACING_HOME) {
+                ghosts[1].leaveHome(); // Release Pinky
+            }
+            if (window.player_controls_inky && ghosts[2].mode == GHOST_PACING_HOME) {
+                ghosts[2].leaveHome(); // Release Inky
+            }
+            if (window.player_controls_clyde && ghosts[3].mode == GHOST_PACING_HOME) {
+                ghosts[3].leaveHome(); // Release Clyde
+            }
+
             // use personal dot counter
             if (mode == MODE_PERSONAL) {
                 for (i=1;i<4;i++) {

@@ -88,7 +88,7 @@ var getGhostNames = function(mode) {
         return ["plato","darwin","freud","newton"];
     }
     else if (mode == GAME_MSPACMAN) {
-        return ["blinky","pinky","inky","sue"];
+        return ["blinky","pinky","inky","clyde"];
     }
     else if (mode == GAME_PACMAN) {
         return ["blinky","pinky","inky","clyde"];
@@ -105,7 +105,7 @@ var getGhostDrawFunc = function(mode) {
     if (mode == GAME_OTTO) {
         return atlas.drawMonsterSprite;
     }
-    else if (mode == GAME_COOKIE) {
+    else if (mode == GAME_COOKIE || mode == GAME_MSPACMAN) {
         return atlas.drawMuppetSprite;
     }
     else {
@@ -124,7 +124,8 @@ var getPlayerDrawFunc = function(mode) {
         return atlas.drawPacmanSprite;
     }
     else if (mode == GAME_MSPACMAN) {
-        return atlas.drawMsPacmanSprite;
+        // return atlas.drawMsPacmanSprite; //uncomment to use original ms pacman sprite.
+        return drawCookiemanSprite;
     }
     else if (mode == GAME_COOKIE) {
         //return atlas.drawCookiemanSprite;
@@ -188,6 +189,7 @@ var extraLives = 0;
 var savedLevel = {};
 var savedExtraLives = {};
 var savedHighScore = {};
+var ghostHighScores = [];
 var savedScore = {};
 var savedState = {};
 
@@ -288,6 +290,103 @@ var saveHighScores = function() {
     }
 };
 
+var loadGhostHighScores = function() {
+    if (localStorage && localStorage.ghostHighScores) {
+        ghostHighScores = JSON.parse(localStorage.ghostHighScores);
+    } else {
+        // Initialize with empty or default scores if you like
+        ghostHighScores = [];
+    }
+};
+
+var saveGhostHighScores = function() {
+    if (localStorage) {
+        localStorage.ghostHighScores = JSON.stringify(ghostHighScores);
+    }
+};
+/**
+ * Checks current ghost scores against the high score list,
+ * adds them, sorts, truncates, and saves.
+ */
+
+var checkGhostHighScores = function() {
+    // Get default AI names for the current game mode
+    var defaultNames = getGhostNames();
+    var ghostNameMap = {
+        'blinky': defaultNames[0].toUpperCase(),
+        'pinky':  defaultNames[1].toUpperCase(),
+        'inky':   defaultNames[2].toUpperCase(),
+        'clyde':  defaultNames[3].toUpperCase()
+    };
+
+    var newEntries = 0;
+
+    // Add current game scores to the persistent list
+    for (var i = 0; i < ghosts.length; i++) {
+        var g = ghosts[i];
+        if (g.score > 0) { // Only add players who scored
+            ghostHighScores.push({
+                name: g.playerName ? g.playerName.toUpperCase() : ghostNameMap[g.name],
+                score: g.score,
+                ghost: g.name // Store 'blinky', 'pinky', etc. to know which sprite to draw
+            });
+            newEntries++;
+        }
+    }
+
+    // Only sort and save if new scores were added
+    if (newEntries > 0) {
+        // Sort by score, descending
+        ghostHighScores.sort(function(a, b) {
+            return (b.score || 0) - (a.score || 0);
+        });
+
+        // Keep only the top 10
+        if (ghostHighScores.length > 10) {
+            ghostHighScores = ghostHighScores.slice(0, 10);
+        }
+
+        // Save the new list to local storage
+        saveGhostHighScores();
+    }
+};
+function updateGhostDisplay(ghost) {
+ 
+}
+/**
+ * Submits a single player-controlled ghost's score to the leaderboard.
+ * This is called when a player disconnects.
+ * @param {Ghost} ghost - The ghost object for the disconnecting player.
+ */
+var submitSingleGhostScore = function(ghost) {
+    // Only submit if it's a player, they have a name, and score is positive
+    if (!ghost || !ghost.playerName || ghost.score <= 0) {
+        return; 
+    }
+
+    // Add this single score
+    ghostHighScores.push({
+        name: ghost.playerName.toUpperCase(),
+        score: ghost.score,
+        ghost: ghost.name
+    });
+
+    // Sort by score, descending
+    ghostHighScores.sort(function(a, b) {
+        return (b.score || 0) - (a.score || 0);
+    });
+
+    // Keep only the top 10
+    if (ghostHighScores.length > 10) {
+        ghostHighScores = ghostHighScores.slice(0, 10);
+    }
+
+    // Save the new list to local storage
+    saveGhostHighScores();
+    
+    console.log("Submitted single score for " + ghost.playerName + ": " + ghost.score);
+};
+
 var loadAISettings = function() {
     if (localStorage && localStorage.AISettings) {
         var settings = JSON.parse(localStorage.AISettings);
@@ -317,3 +416,48 @@ var saveAISettings = function() {
         localStorage.AISettings = JSON.stringify(newSettings);
     }
 };
+
+function playLevelMusic(levelNum) {
+    var trackName = null;
+
+    // --- Song logic based on level number (from previous fix) ---
+    if (levelNum >= 1 && levelNum <= 2) {
+        trackName = 'music_lvl1';
+    } else if (levelNum >= 3 && levelNum <= 5) {
+        trackName = 'music_lvl2';
+    } else if (levelNum >= 6 && levelNum <= 9) {
+        trackName = 'music_lvl3';
+    } else if (levelNum == 10) {
+        trackName = 'music_lvl4';
+    } else if (levelNum == 11) {
+        trackName = 'music_lvl5';
+    } else if (levelNum == 12) {
+        trackName = 'music_random';
+    } else if (levelNum > 12) {
+        var tracks = ['music_lvl1', 'music_lvl2', 'music_lvl3', 'music_lvl4', 'music_lvl5', 'music_random'];
+        var randomIndex = Math.floor(Math.random() * tracks.length);
+        trackName = tracks[randomIndex];
+    }
+    // --- END: Song logic ---
+
+    if (trackName) {
+        
+        // --- START OF NEW FIX ---
+        // Check which song to play.
+        // Only level1 and random are allowed to overlap with ms_start.
+        if (trackName === 'music_lvl1' || trackName === 'music_random' || trackName === 'music_lvl5') {
+            // Play these tracks immediately.
+            audio.playMusic(trackName);
+        } else {
+            // Delay all other tracks to let 'ms_start' finish.
+            setTimeout(function() {
+                audio.playMusic(trackName);
+            }, 2500); // 2.5-second delay
+        }
+        // --- END OF NEW FIX ---
+
+    } else {
+        // Stop music if no track is selected (e.g., in cutscenes)
+        audio.stopMusic();
+    }
+}

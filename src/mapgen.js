@@ -1348,6 +1348,9 @@ var mapgen = (function(){
                 return undefined;
             }
             var node = graph[x+y*28];
+            if (!node) {
+                return undefined;
+            }
             var dirEnum = getDirFromPenult(node);
             if (dirEnum != undefined) {
                 return rotateAboutFace(dirEnum); // reverse direction (door->ghost to door<-ghost)

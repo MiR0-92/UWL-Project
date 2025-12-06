@@ -3,7 +3,7 @@
 //
 
 var playCutScene = function(cutScene, nextState) {
-
+    audio.stopAllLoops();
     // redraw map buffer with fruit list but no map structure
     map = undefined;
     renderer.drawMap(true);
@@ -423,6 +423,7 @@ var mspacmanCutscene1 = (function() {
 
                             if (pinky.pixel.x == 105) {
                                 ghostMode++;
+                                audio.play('ms_cutscene_2_bump');
                             }
                         }
                         else if (ghostMode == GHOST_BUMP) {
@@ -620,7 +621,7 @@ var cookieCutscene1 = newChildObject(scriptState, {
 
     init: function() {
         scriptState.init.call(this);
-
+        audio.play('ms_cutscene_1');
         // initialize actor positions
         pacman.setPos(232, 164);
         blinky.setPos(257, 164);
@@ -724,6 +725,7 @@ var cookieCutscene1 = newChildObject(scriptState, {
         // end
         640: {
             init: function() {
+                audio.stop('ms_cutscene_1');
                 // disable custom steps
                 delete pacman.getNumSteps;
                 delete blinky.getNumSteps;
@@ -797,6 +799,7 @@ var cookieCutscene2 = (function() {
     };
 
     var exit = function() {
+        audio.stop('ms_cutscene_2');
         // disable custom steps
         delete inky.getNumSteps;
         delete pinky.getNumSteps;
@@ -818,7 +821,7 @@ var cookieCutscene2 = (function() {
 
         init: function() {
             scriptState.init.call(this);
-
+            audio.play('ms_cutscene_2');
             // chosen by trial-and-error to match animations
             mspac.frames = 14;
             pac.frames = 12;
@@ -1074,7 +1077,7 @@ var cookieCutscene2 = (function() {
 
 var cutscenes = [
     [pacmanCutscene1], // GAME_PACMAN
-    [mspacmanCutscene1, mspacmanCutscene2], // GAME_MSPACMAN
+    [cookieCutscene1, cookieCutscene2], // GAME_MSPACMAN
     [cookieCutscene1, cookieCutscene2], // GAME_COOKIE
     [mspacmanCutscene1, mspacmanCutscene2], // GAME_OTTO
 ];
@@ -1110,11 +1113,11 @@ var triggerCutsceneAtEndLevel = function() {
     }
     else if (gameMode == GAME_MSPACMAN || gameMode == GAME_OTTO) {
         if (level == 2) {
-            playCutScene(mspacmanCutscene1, readyNewState);
+            playCutScene(cookieCutscene1, readyNewState);
             return true;
         }
         else if (level == 5) {
-            playCutScene(mspacmanCutscene2, readyNewState);
+            playCutScene(cookieCutscene2, readyNewState);
             return true;
         }
     }

@@ -3,27 +3,25 @@
 
 <head>
 
-    <title>Pac-Man</title>
+    <title>Cookie-Eater</title> 
 
-    <!-- Lock viewport on mobile devices. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 
-    <!-- Allow page to be saved as web app on iOS. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
 
-    <!-- Hide status bar -->
-    <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <!-- icon used for iOS Web App -->
     <link rel="apple-touch-icon-precomposed" href="icon/ios_icon.png"/>
 
     <link rel="icon" type="image/png" href="icon/favicon.png"/>
+    
 
     <style>
         body {
             margin:0;
             background: #000;
             background-color: #000 !important;
+            overflow: hidden; /* Hide scrollbars caused by layout */
         }
         @font-face {
             font-family: 'ArcadeR';
@@ -61,10 +59,152 @@
                 width: 75px !important;
             }
         }
-    </style>
+
+        /* This panel is now positioned absolutely */
+        #player-status-panel {
+            position: absolute;
+            bottom: 100px;
+            left: calc(50% - 650px); /* Positioned from the window's left edge */
+            color: white;
+            font-family: 'ArcadeR', monospace;
+            width: 330px;
+            transform: scale(1.2);
+            z-index: 100; /* Make sure it's on top */
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 10px; /* Reduced margin */
+            font-size: 10px;
+            color: #ccc;
+        }
+
+        .header-name {
+            width: 142px; /* img + margin + name width */
+            padding-left: 32px; /* 24px img + 8px margin */
+        }
+
+        .header-score {
+            width: 70px; /* Reduced width */
+        }
+
+        .header-bonus {
+            width: 138px; /* Added bonus header */
+        }
+
+        .player-status-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px; /* Reduced margin */
+            height: 24px; /* 3 * 8px tileSize */
+            font-size: 10px;
+        }
+
+        .player-status-row img {
+            width: 24px; /* 3 * 8px tileSize */
+            height: 24px; /* 3 * 8px tileSize */
+            image-rendering: pixelated; /* Keep pixel art sharp */
+            margin-right: 8px; /* 1 * 8px tileSize */
+        }
+
+        .player-name {
+            width: 110px; /* Adjusted width */
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .player-score {
+            width: 70px; /* Reduced width */
+            color: #fff700;
+            font-size: 12px;
+        }
+
+        .player-bonus {
+            width: 138px; /* Added bonus text */
+            color: #fff; /* White color as requested */
+            font-size: 12px;
+            text-align: center;
+            padding-right: 10px; /* Add some padding */
+            box-sizing: border-box;
+        }
+
+        /* Hide the panel on mobile, as it won't fit */
+        @media (max-width: 767px) {
+            #player-status-panel {
+                display: none;
+            }
+            /* canvas margin-top is already handled */
+        }
+        /* --- END OF MODIFICATION --- */
+
+        
+        #power-ups-panel {
+            position: absolute;
+            bottom: 100px;
+            
+            /* --- THIS IS THE POSITIONING FIX --- */
+            left: calc(50% + 350px); 
+            
+            color: white;
+            font-family: 'ArcadeR', monospace;
+            width: 330px; 
+            transform: scale(1.2); 
+            z-index: 100;
+            text-align: left;
+        }
+
+        .power-ups-title {
+            font-size: 14px;
+            color: #FFFF00; /* Pac-Man Yellow */
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            text-align: justify;
+        }
+
+        .power-ups-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 10px;
+            line-height: 1.8;
+        }
+        
+        .power-ups-list li {
+            text-transform: uppercase;
+        }
+    
+        .fruit-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            height: 25px; /* Match ghost panel row height */
+        }
+
+        .fruit-item canvas {
+            /* --- THIS IS THE SIZE FIX --- */
+            width: 25px; 
+            height: 25px;
+            image-rendering: pixelated; /* Keeps pixel art sharp */
+            margin-right: 10px;
+            margin-top: 4px; /* Vertically center 22px canvas in 24px row */
+        }
+        
+        /* Hide this new panel on mobile, just like the other one */
+        @media (max-width: 767px) {
+            #power-ups-panel {
+                display: none;
+            }
+        }
+        </style>
 
     <link rel="stylesheet" type="text/css" href="libs/bootstrap/bootstrap.min.css">
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="libs/jquery-1.11.3.min.js"></script>
     <script src="libs/bootstrap/bootstrap.min.js"></script>
     <script src="libs/underscore-min.js"></script>
@@ -100,12 +240,12 @@
     <script src="src/cutscenes.js"></script>
     <script src="src/maps.js"></script>
     <script src="src/vcr.js"></script>
+    <script src="src/audio.js"></script>
     <script src="src/main.js"></script>
 </head>
 
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container-fluid">
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation" style="display: none;">     <div class="container-fluid">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">Toggle navigation</span>
@@ -138,16 +278,16 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="aiDepth" class="settingsLabel">AI Depth:</label>
+                          <label for="aiDepth" class="settingsLabel">AI Depth:</label>
                                 <input id="aiDepth" class="form-control num-input" type="number">
                             </div>
                             <div class="form-group">
-                                <label for="showPacmanPath" class="settingsLabel">Show Pacman Best Route</label>
+                             <label for="showPacmanPath" class="settingsLabel">Show Pacman Best Route</label>
                                 <input type="checkbox" id="showPacmanPath" name="showPacmanPath">
                             </div>
                             <div class="form-group">
                                 <label for="showGhostPaths" class="settingsLabel">Show Ghost Paths</label>
-                                <input type="checkbox" id="showGhostPaths" name="showGhostPaths">
+                            <input type="checkbox" id="showGhostPaths" name="showGhostPaths">
                             </div>
                             <div id="play-manually-group" class="form-group">
                                 <label for="playManually" class="settingsLabel">Manual Play</label>
@@ -157,14 +297,19 @@
 
                         </form>
                     </li>
-                </ul>
+            </ul>
             </div>
         </div>
     </div>
 
     <div style='font-family: ArcadeR'> </div>
-    <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
-    <canvas id='atlas' style="display:none"></canvas>
+    
+        <div id="game-container">
+        <div> 
+            <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
+            <canvas id='atlas' style="display:none"></canvas>
+        </div>
+    </div>
 </body>
 
 </html>

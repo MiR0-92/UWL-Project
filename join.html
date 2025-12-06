@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pacman Controller</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh; /* Use 100% viewport height */
+      overflow: hidden; /* Prevents scrollbars */
+      background: #111;
+      color: white;
+      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    @font-face {
+        font-family: 'ArcadeR';
+        src: url('font/ARCADE_R.TTF');
+    }
+
+    /* --- START: Full Screen Button Style --- */
+    #fullscreen-btn {
+      position: absolute;
+      top: 3vh;
+      right: 3vw;
+      z-index: 1000; /* On top of everything */
+      font-family: 'ArcadeR', monospace;
+      font-weight: bold;
+      color: #111; /* Black text */
+      background: #FFFF00; /* Pac-Man Yellow */
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 4vw; 
+      padding: 12px 15px;
+    }
+
+    h1 {
+      font-size: 7vw;
+      margin: 0 0 1vh 0;
+      font-family: 'ArcadeR', monospace;
+    }
+
+    /* --- Container Styling --- */
+    .container {
+      width: 100%;
+      height: 100%; /* Make container fill the vh */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-sizing: border-box; /* Important for padding */
+    }
+
+    #lobby-container {
+      justify-content: center;
+      padding: 2vh 0;
+    }
+
+    #controller-container {
+      display: none; /* Hidden by default */
+      flex-direction: column;
+      justify-content: flex-start; 
+      padding: 10vh 0 2vh 0; 
+      height: 100%; 
+      box-sizing: border-box;
+    }
+
+    /* --- Lobby Styling --- */
+    #lobby-container h1 {
+      font-size: 8vw;
+      color: #FFFF00; /* Pac-Man Yellow */
+    }
+
+    #ghost-selector {
+      display: flex;
+      flex-direction: column; 
+      align-items: center;
+      justify-content: center;
+      margin: 2vh 0;
+    }
+    
+    .ghost-selector-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .arrow-btn {
+      font-size: 15vmin;
+      color: #fff;
+      background: none;
+      border: none;
+      padding: 0 5vw;
+      cursor: pointer;
+    }
+    .arrow-btn:disabled {
+      color: #444;
+    }
+
+    #ghost-image-lobby {
+      width: 45vmin;
+      height: 45vmin;
+      image-rendering: pixelated; 
+    }
+
+    #ghost-name-lobby {
+      font-size: 5vw;
+      color: #fff;
+      margin-top: 1.5vh;
+      font-weight: bold;
+      text-transform: capitalize;
+      font-family: 'ArcadeR', monospace;
+    }
+
+    #player-name-lobby {
+      width: 70vw;
+      max-width: 300px;
+      padding: 10px; 
+      font-size: 4vw; 
+      text-align: center;
+      background: #333;
+      color: #fff;
+      border: 2px solid #555;
+      border-radius: 8px;
+      margin-bottom: 2vh;
+      font-family: 'ArcadeR', monospace;
+    }
+
+    #join-button {
+      width: 70vw;
+      max-width: 300px;
+      padding: 15px;
+      font-size: 6vw;
+      font-weight: bold;
+      color: #111;
+      background: #87CEEB; /* Skyblue */
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'ArcadeR', monospace;
+    }
+    #join-button:disabled {
+      background: #555;
+      color: #888;
+    }
+
+    #lobby-status {
+      margin-top: 2vh;
+      color: #ff4444;
+      font-size: 4vw;
+      height: 1.2em; 
+      font-family: 'ArcadeR', monospace;
+    }
+
+    /* --- Controller View Styling --- */
+    #player-name-ingame {
+      font-size: 7vw;
+      font-weight: bold;
+      color: #87CEEB; /* Skyblue */
+      margin-bottom: 1vh; 
+      font-family: 'ArcadeR', monospace;
+    }
+
+    #ghost-image-ingame {
+      width: 40vmin; 
+      height: 40vmin; 
+      image-rendering: pixelated;
+    }
+    
+    #playing-as-text {
+      font-size: 5vw;
+      margin: 1vh 0 0 0; 
+      text-transform: capitalize;
+      font-family: 'ArcadeR', monospace;
+    }
+
+    #joystick-container {
+      position: relative;
+      margin-bottom: 3vh; 
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #joystick-base {
+      position: relative;
+      width: 40vmin;
+      height: 40vmin;
+      background: rgba(135, 206, 235, 0.4); 
+      border: 3px solid #87CEEB;
+      border-radius: 50%;
+    }
+
+    #joystick-stick {
+      position: absolute;
+      width: 20vmin;
+      height: 20vmin;
+      background: #007FFF;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s linear; /* Slightly faster for snap-back */
+    }
+
+    #connection-status {
+      font-size: 4vw;
+      font-weight: bold;
+      margin: 0;
+      font-family: 'ArcadeR', monospace;
+    }
+    
+    /* --- Exit Button Styles --- */
+    .exit-btn {
+      position: absolute;
+      top: 3vh;
+      left: 3vw;
+      background: none;
+      border: none;
+      color: #fff;
+      font-family: 'ArcadeR', monospace;
+      font-size: 4vw;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 15vw;
+    }
+    .exit-btn img {
+      width: 12vw;
+      height: 12vw;
+      image-rendering: pixelated;
+      margin-bottom: 0.5vh;
+    }
+
+    /* --- Exit Screen Styles --- */
+    #exit-container {
+      display: none; 
+      justify-content: flex-start; 
+      padding-top: 10vh; 
+      text-align: center;
+      font-family: 'ArcadeR', monospace;
+    }
+    #exit-container h1 {
+      font-size: 6vw;
+      color: #FFFF00; 
+      margin-bottom: 4vh;
+    }
+    #exit-container p {
+      font-size: 5vw;
+      color: #fff;
+      margin: 1.5vh 0;
+    }
+
+    #exit-countdown {
+      font-size: 4vw;
+      color: #ccc;
+      font-family: 'ArcadeR', monospace;
+      margin-bottom: 8vh; 
+    }
+
+    #exit-greeting, #exit-score-label {
+      font-size: 5vw;
+      color: #fff;
+      margin: 0;
+    }
+
+    #exit-username, #exit-score-value {
+      font-size: 6vw;
+      color: #FFFF00; 
+      margin-top: 0.5vh; 
+      margin-bottom: 5vh; 
+    }
+    
+    .exit-feedback {
+      font-size: 4vw;
+      color: #ccc;
+      margin-top: 5vh; 
+    }
+    
+    #feedback-button {
+      width: 70vw;
+      max-width: 300px;
+      padding: 15px;
+      font-size: 6vw;
+      font-weight: bold;
+      font-family: 'ArcadeR', monospace;
+      text-decoration: none;
+      color: #111; 
+      background: #FFFF00; 
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 3vh; 
+    }
+
+  </style>
+</head>
+<body>
+  
+  <button id="fullscreen-btn">FULL SCREEN</button>
+  <div id="lobby-container" class="container">
+    <h1>CHOOSE GHOST</h1>
+    
+    <input type="text" id="player-name-lobby" placeholder="Enter Your Name">
+
+    <div id="ghost-selector">
+      <div class="ghost-selector-row">
+        <button id="prev-ghost" class="arrow-btn">&lt;</button>
+        <img id="ghost-image-lobby" src="/images/blinky.png" alt="Selected Ghost">
+        <button id="next-ghost" class="arrow-btn">&gt;</button>
+      </div>
+      <p id="ghost-name-lobby">playing as Blinky</p>
+    </div>
+    
+    <button id="join-button">JOIN GAME</button>
+
+    <p id="lobby-status"></p>
+  </div>
+
+  <div id="controller-container" class="container">
+    
+    <button id="exit-button" class="exit-btn">
+      <img src="/images/door.png" alt="Exit"> <span>EXIT</span>
+    </button>
+    <span id="player-name-ingame">Player</span>
+    
+    <img id="ghost-image-ingame" src="/images/blinky.png">
+    
+    <p id="playing-as-text">playing as <span id="ghost-name-ingame">Blinky</span></p>
+
+    <div id="joystick-container">
+      <div id="joystick-base">
+        <div id="joystick-stick"></div>
+      </div>
+    </div>
+    
+    <p id="connection-status">Status: <span id="status-text">Connecting...</span></p>
+
+  </div>
+
+  <div id="exit-container" class="container">
+    <p id="exit-countdown"></p>
+    <p id="exit-greeting">Thank you for playing</p>
+    <h1 id="exit-username">Player</h1>
+    <p id="exit-score-label">Your score is:</p>
+    <p id="exit-score-value">0</p>
+    <p class="exit-feedback">Would you like to leave some feedback?</p>
+    <a href="https://forms.gle/LyftbtqTAmJqrXBh7" target="_blank" id="feedback-button">HERE!</a>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    // --- Page Elements ---
+    const lobbyContainer = document.getElementById('lobby-container');
+    const controllerContainer = document.getElementById('controller-container');
+    const lobbyStatus = document.getElementById('lobby-status');
+
+    // Lobby Elements
+    const prevGhostBtn = document.getElementById('prev-ghost');
+    const nextGhostBtn = document.getElementById('next-ghost');
+    const ghostImageLobby = document.getElementById('ghost-image-lobby');
+    const ghostNameLobby = document.getElementById('ghost-name-lobby');
+    const playerNameInput = document.getElementById('player-name-lobby');
+    const joinButton = document.getElementById('join-button');
+
+    // Controller Elements
+    const playerNameIngame = document.getElementById('player-name-ingame');
+    const ghostImageIngame = document.getElementById('ghost-image-ingame');
+    const ghostNameIngame = document.getElementById('ghost-name-ingame');
+    const statusText = document.getElementById('status-text');
+    const base = document.getElementById('joystick-base');
+    const stick = document.getElementById('joystick-stick');
+    
+    // Exit Elements
+    const exitButton = document.getElementById('exit-button');
+    const exitContainer = document.getElementById('exit-container');
+    const exitCountdown = document.getElementById('exit-countdown'); 
+    const exitGreeting = document.getElementById('exit-greeting');
+    const exitUsername = document.getElementById('exit-username');
+    const exitScoreLabel = document.getElementById('exit-score-label');
+    const exitScoreValue = document.getElementById('exit-score-value');
+
+    // --- State Variables ---
+    const GHOSTS = [
+      { name: 'blinky', path: '/images/blinky.png' },
+      { name: 'pinky', path: '/images/pinky.png' },
+      { name: 'inky', path: '/images/inky.png' },
+      { name: 'clyde', path: '/images/clyde.png' }
+    ];
+    let currentGhostIndex = 0;
+    let takenGhosts = {};
+    let myGhostName = null;
+    let countdownInterval = null; 
+
+    // --- NEW: SWIPE CONTROL VARIABLES ---
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let activeTouchId = null;
+    let currentDirection = null;
+    
+    // Sensitivity: How many pixels you must drag to register a turn
+    const SWIPE_THRESHOLD = 35; 
+    let maxVisualDistance = 50; // Radius limit for the visual stick
+
+    // --- View Switching ---
+    function showLobby() {
+      lobbyContainer.style.display = 'flex';
+      controllerContainer.style.display = 'none';
+      exitContainer.style.display = 'none';
+      if (countdownInterval) clearInterval(countdownInterval); 
+      lobbyStatus.textContent = '';
+      updateGhostSelector();
+    }
+
+    function showController(player) {
+      lobbyContainer.style.display = 'none';
+      controllerContainer.style.display = 'flex';
+      exitContainer.style.display = 'none';
+      
+      myGhostName = player.ghost;
+      const ghostData = GHOSTS.find(g => g.name === player.ghost);
+      
+      playerNameIngame.textContent = player.name;
+      ghostImageIngame.src = ghostData.path;
+      ghostNameIngame.textContent = player.ghost;
+
+      // Recalculate visual bounds
+      setTimeout(initializeVisuals, 50);
+    }
+    
+    function showExitScreen(score) {
+      lobbyContainer.style.display = 'none';
+      controllerContainer.style.display = 'none';
+      exitContainer.style.display = 'flex';
+
+      const playerName = playerNameIngame.textContent;
+      exitUsername.textContent = playerName;
+      exitScoreValue.textContent = score;
+
+      let countdownValue = 15;
+      exitCountdown.textContent = `Exiting in ${countdownValue}...`;
+
+      if (countdownInterval) clearInterval(countdownInterval);
+      countdownInterval = setInterval(() => {
+        countdownValue--;
+        exitCountdown.textContent = `Exiting in ${countdownValue}...`;
+
+        if (countdownValue <= 0) {
+          clearInterval(countdownInterval);
+          window.location.href = '/join'; 
+        }
+      }, 1000);
+
+      socket.disconnect();
+    }
+
+    // --- Lobby Logic ---
+    function updateGhostSelector() {
+      const ghost = GHOSTS[currentGhostIndex];
+      ghostImageLobby.src = ghost.path;
+      ghostNameLobby.textContent = `playing as ${ghost.name}`;
+
+      if (takenGhosts[ghost.name]) {
+        joinButton.disabled = true;
+        joinButton.textContent = 'TAKEN';
+        lobbyStatus.textContent = `${ghost.name} is being played by ${takenGhosts[ghost.name].name}`;
+      } else {
+        joinButton.disabled = false;
+        joinButton.textContent = 'JOIN GAME';
+        lobbyStatus.textContent = '';
+      }
+    }
+
+    prevGhostBtn.addEventListener('click', () => {
+      currentGhostIndex = (currentGhostIndex - 1 + GHOSTS.length) % GHOSTS.length;
+      updateGhostSelector();
+    });
+
+    nextGhostBtn.addEventListener('click', () => {
+      currentGhostIndex = (currentGhostIndex + 1) % GHOSTS.length;
+      updateGhostSelector();
+    });
+
+    playerNameInput.addEventListener('input', () => {
+        lobbyStatus.textContent = '';
+    });
+
+    joinButton.addEventListener('click', () => {
+        const playerName = playerNameInput.value;
+        const ghostName = GHOSTS[currentGhostIndex].name;
+        
+        if (playerName.trim().length === 0) {
+            lobbyStatus.textContent = 'Please enter a name!';
+            return;
+        }
+        if (playerName.length >= 8) {
+            lobbyStatus.textContent = 'Name must be 7 characters or less.';
+            return;
+        }
+        if (/\s/.test(playerName)) {
+            lobbyStatus.textContent = 'Spaces are not allowed.';
+            return;
+        }
+        if (/[^a-zA-Z0-9]/.test(playerName)) {
+            lobbyStatus.textContent = 'Special symbols are forbidden.';
+            return;
+        }
+
+        lobbyStatus.textContent = `Joining as ${ghostName}...`;
+        joinButton.disabled = true;
+        
+        socket.emit('join-request', { name: playerName.trim(), ghost: ghostName });
+    });
+
+    // --- Socket Handlers ---
+    socket.on('connect', () => {
+      statusText.textContent = 'Connected!';
+      statusText.style.color = 'lime';
+      socket.emit('controller-ready');
+    });
+    
+    socket.on('disconnect', () => {
+      statusText.textContent = 'Disconnected';
+      statusText.style.color = 'red';
+      myGhostName = null;
+      if (exitContainer.style.display === 'none') {
+        showLobby();
+      }
+    });
+
+    socket.on('ghost-status', (status) => {
+      takenGhosts = status;
+      if (controllerContainer.style.display === 'none' && exitContainer.style.display === 'none') {
+        updateGhostSelector();
+      }
+    });
+
+    socket.on('join-success', (player) => {
+      showController(player);
+    });
+
+    socket.on('join-error', (data) => {
+      lobbyStatus.textContent = data.message;
+      joinButton.disabled = false;
+    });
+
+    socket.on('receive-exit-data', (data) => {
+      showExitScreen(data.score);
+    });
+
+    const sendDirection = (dir, pressed) => {
+      if (dir && myGhostName) {
+        socket.emit('control', { 
+          direction: dir, 
+          pressed: pressed 
+        });
+      }
+    };
+
+    // --- NEW: SWIPE LOGIC IMPLEMENTATION ---
+
+    // Sets up visual bounds for the joystick graphic
+    function initializeVisuals() {
+      if (!base.offsetParent) return;
+      // Calculate how far the stick can visually move inside the base
+      maxVisualDistance = base.offsetWidth / 2 - stick.offsetWidth / 2;
+    }
+
+    function handleTouchStart(e) {
+        if (controllerContainer.style.display === 'none') return;
+        
+        // Check if touching a button (Exit/Fullscreen)
+        if (e.target.closest('button')) return;
+
+        e.preventDefault();
+        
+        // Only track one finger
+        if (activeTouchId !== null) return;
+        
+        const touch = e.changedTouches[0];
+        activeTouchId = touch.identifier;
+        
+        // Set the "Anchor" point where the finger landed
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        
+        // Visually center the stick (reset)
+        stick.style.transform = 'translate(-50%, -50%)';
+    }
+
+    function handleTouchMove(e) {
+        if (controllerContainer.style.display === 'none') return;
+        e.preventDefault(); // Prevent scrolling
+        if (activeTouchId === null) return;
+        
+        const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
+        if (!touch) return;
+
+        const currentX = touch.clientX;
+        const currentY = touch.clientY;
+
+        // Calculate offset from the Anchor
+        const diffX = currentX - touchStartX;
+        const diffY = currentY - touchStartY;
+        const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+
+        // 1. UPDATE VISUAL STICK (clamped to base)
+        const angle = Math.atan2(diffY, diffX);
+        const visualDist = Math.min(distance, maxVisualDistance);
+        const stickX = Math.cos(angle) * visualDist;
+        const stickY = Math.sin(angle) * visualDist;
+        stick.style.transform = `translate(calc(-50% + ${stickX}px), calc(-50% + ${stickY}px))`;
+
+        // 2. CHECK IF THRESHOLD PASSED (The "Swipe")
+        if (distance > SWIPE_THRESHOLD) {
+            let direction = null;
+
+            // Determine dominant direction
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                direction = diffX > 0 ? 'right' : 'left';
+            } else {
+                direction = diffY > 0 ? 'down' : 'up';
+            }
+
+            if (direction) {
+                // Send the new direction
+                if (direction !== currentDirection) {
+                    // Optional: Send "release" for old direction if needed, but Pacman usually just needs the new one
+                    if (currentDirection) sendDirection(currentDirection, false); 
+                    
+                    sendDirection(direction, true);
+                    currentDirection = direction;
+                }
+            }
+
+            // 3. ANCHOR RESET (The Key Feature)
+            // We reset the center to the current finger position.
+            // This allows the user to immediately turn (L-shape) without lifting.
+            touchStartX = currentX;
+            touchStartY = currentY;
+            
+            // 4. VISUAL SNAP BACK
+            // Snap the stick back to center to give tactile feedback that the turn registered.
+            stick.style.transform = 'translate(-50%, -50%)';
+        }
+    }
+
+    function handleTouchEnd(e) {
+        if (controllerContainer.style.display === 'none') return;
+        
+        // Check if touching buttons
+        if (e.target.closest('button')) return;
+        
+        const touch = Array.from(e.changedTouches).find(t => t.identifier === activeTouchId);
+        if (!touch) return;
+
+        // Reset state
+        activeTouchId = null;
+        stick.style.transform = 'translate(-50%, -50%)'; // Visual reset
+        
+        // Optional: clear direction on release? 
+        // usually better to leave it for Pacman so he keeps moving
+        if (currentDirection) {
+            // sendDirection(currentDirection, false); // Uncomment if you want to stop on release
+            // currentDirection = null; 
+        }
+    }
+
+    // Attach Listeners
+    document.body.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.body.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.body.addEventListener('touchend', handleTouchEnd);
+    document.body.addEventListener('touchcancel', handleTouchEnd);
+    window.addEventListener('resize', initializeVisuals);
+
+
+    // --- Exit Button Logic ---
+    exitButton.addEventListener('click', (e) => {
+      e.preventDefault(); 
+      statusText.textContent = 'Leaving...';
+      socket.emit('client-leave-request');
+    });
+
+    // --- Initial Setup ---
+    showLobby(); 
+
+  </script>
+
+  <script>
+    document.getElementById('fullscreen-btn').addEventListener('click', function() {
+      var elem = document.documentElement; 
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) { 
+        elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) { 
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { 
+        elem.msRequestFullscreen();
+      }
+      this.style.display = 'none'; 
+    });
+  </script>
+</body>
+</html>

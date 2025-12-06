@@ -14,13 +14,13 @@ var renderScale;
 
 var mapMargin = 4*tileSize; // margin between the map and the screen
 var mapPad = tileSize/8; // padding between the map and its clipping
-
+var panelWidth = 30 * tileSize; // NEW: Width for side panels (16 tiles * 8px = 128px)
 var mapWidth = 28*tileSize+mapPad*2;
 var mapHeight = 36*tileSize+mapPad*2;
 var mapWidth_Tile = 28;
 var mapHeight_Tile = 36;
 
-var screenWidth = mapWidth+mapMargin*2;
+var screenWidth = mapWidth+(2 * panelWidth);
 var screenHeight = mapHeight+mapMargin*2;
 
 // all rendering will be shown on this canvas
@@ -36,7 +36,7 @@ var getDevicePixelRatio = function() {
     // Only consider the device pixel ratio for devices that are <= 320 pixels in width.
     // This is necessary for the iPhone4's retina display; otherwise the game would be blurry.
     // The iPad3's retina display @ 2048x1536 starts slowing the game down.
-    return 1;
+
     if (window.innerWidth <= 320) {
         return window.devicePixelRatio || 1;
     }
@@ -192,22 +192,17 @@ var initRenderer = function(){
 
             // clear margin area
             ctx.fillStyle = "#000";
-            (function(w,h,p){
-                ctx.fillRect(0,0,w,p+1);
-                ctx.fillRect(0,p,p,h-2*p);
-                ctx.fillRect(w-p-2,p,p+2,h-2*p);
-                ctx.fillRect(0,h-p-2,w,p+2);
-            })(screenWidth, screenHeight, mapMargin);
+            ctx.fillRect(0, 0, screenWidth, screenHeight);
 
             // draw fps
             ctx.font = (tileSize-2) + "px ArcadeR";
             ctx.textBaseline = "bottom";
             ctx.textAlign = "right";
             ctx.fillStyle = "#333";
-            ctx.fillText(Math.floor(executive.getFps())+" FPS", screenWidth, screenHeight);
+           // ctx.fillText(Math.floor(executive.getFps())+" FPS", screenWidth, screenHeight); //uncomment to display FPS
 
             // translate to map space
-            ctx.translate(mapMargin+mapPad, mapMargin+mapPad);
+            ctx.translate(panelWidth + mapPad, mapMargin + mapPad);
         },
 
         endFrame: function() {
@@ -467,7 +462,6 @@ var initRenderer = function(){
                 }
             }
         },
-
     };
 
     //////////////////////////////////////////////////////////////
@@ -747,29 +741,55 @@ var initRenderer = function(){
                     bgCtx.translate(3*tileSize, (numRows-1)*tileSize);
                     bgCtx.scale(0.85, 0.85);
                     var lives = extraLives == Infinity ? 1 : extraLives;
+var drawLifeIcon;
                     if (gameMode == GAME_PACMAN) {
-                        for (i=0; i<lives; i++) {
+                        drawLifeIcon = function() {
                             drawPacmanSprite(bgCtx, 0,0, DIR_LEFT, Math.PI/6);
-                            bgCtx.translate(2*tileSize,0);
-                        }
-                    }
-                    else if (gameMode == GAME_MSPACMAN) {
-                        for (i=0; i<lives; i++) {
-                            drawMsPacmanSprite(bgCtx, 0,0, DIR_RIGHT, 1);
-                            bgCtx.translate(2*tileSize,0);
-                        }
-                    }
-                    else if (gameMode == GAME_COOKIE) {
-                        for (i=0; i<lives; i++) {
+                        };
+                    } else if (gameMode == GAME_MSPACMAN) {
+                        drawLifeIcon = function() {
+                            // drawMsPacmanSprite(bgCtx, 0,0, DIR_RIGHT, 1); 
                             drawCookiemanSprite(bgCtx, 0,0, DIR_RIGHT, 1, false);
-                            bgCtx.translate(2*tileSize,0);
-                        }
-                    }
-                    else if (gameMode == GAME_OTTO) {
-                        for (i=0; i<lives; i++) {
+                        };
+                    } else if (gameMode == GAME_COOKIE) {
+                        drawLifeIcon = function() {
+                            drawCookiemanSprite(bgCtx, 0,0, DIR_RIGHT, 1, false);
+                        };
+                    } else if (gameMode == GAME_OTTO) {
+                        drawLifeIcon = function() {
                             drawOttoSprite(bgCtx, 0,0,DIR_RIGHT, 0);
+                        };
+                    }
+
+                    // 2. Implement the new display logic
+                    if (extraLives == Infinity) {
+                        // Practice mode: Just draw one icon
+                        drawLifeIcon();
+                        bgCtx.translate(2*tileSize,0);
+
+                    } else if (lives < 4) {
+                        // 1, 2, or 3 lives: Draw them all
+                        for (i=0; i<lives; i++) { 
+                            drawLifeIcon();
                             bgCtx.translate(2*tileSize,0);
                         }
+                    } else {
+                        // 4 or more lives: Draw one icon, then text
+                        drawLifeIcon();
+                        bgCtx.translate(2*tileSize,0); // Move over for the text
+                        
+                        // Draw the "x" text
+                        // We must un-apply the 0.85 scale to draw text normally
+                        bgCtx.save();
+                        bgCtx.scale(1 / 0.85, 1 / 0.85); 
+                        // Use the same font as the level number
+                        bgCtx.font = (tileSize-1) + "px ArcadeR";
+                        bgCtx.textBaseline = "middle";
+                        bgCtx.fillStyle = "#FFF"; // White text
+                        bgCtx.textAlign = "left";
+                        // Draw at the new (0,0) coordinate, which is *after* the translate
+                        bgCtx.fillText("x" + lives, 0, 0); 
+                        bgCtx.restore();
                     }
                     if (extraLives == Infinity) {
                         bgCtx.translate(-4*tileSize,0);
@@ -922,6 +942,13 @@ var initRenderer = function(){
                 ctx.globalAlpha = alpha;
             }
 
+            // NEW: Handle slow ghost blink
+            if (g.slowTimer > 0 && Math.floor(g.frames / 8) % 2 == 0) {
+                if (!alpha) backupAlpha = ctx.globalAlpha; // Store original alpha if not already stored
+                ctx.globalAlpha = 0.5; // Blink to 50% opacity
+                alpha = true; // Set flag to restore alpha later
+            }
+            
             var draw = function(mode, pixel, frames, faceDirEnum, scared, isFlash,color, dirEnum) {
                 if (mode == GHOST_EATEN)
                     return;
@@ -960,7 +987,15 @@ var initRenderer = function(){
             var draw = function(pixel, dirEnum, steps) {
                 var frame = pacman.getAnimFrame(pacman.getStepFrame(steps));
                 var func = getPlayerDrawFunc();
-                func(ctx, pixel.x, pixel.y, dirEnum, frame, true);
+                
+                // NEW: Handle speed boost blink
+                var color = undefined; // Use default color
+                if (pacman.speedBoostTimer > 0 && Math.floor(pacman.frames / 8) % 2 == 0) {
+                    color = "#FFD700"; // Gold
+                }
+
+                // Pass the new color variable as the 11th argument
+                func(ctx, pixel.x, pixel.y, dirEnum, frame, true, undefined, undefined, undefined, undefined, color);
             };
 
             vcr.drawHistory(ctx, function(t) {
@@ -1020,7 +1055,7 @@ var initRenderer = function(){
                 var maxAngle = Math.PI*5;
                 var step = (Math.PI/4) / maxAngle; // 45 degree steps
                 var angle = Math.floor(t/step)*step*maxAngle;
-                drawMsPacmanSprite(ctx, pacman.pixel.x, pacman.pixel.y, pacman.dirEnum, frame, angle);
+                drawCookiemanSprite(ctx, pacman.pixel.x, pacman.pixel.y, pacman.dirEnum, frame, false, angle);
             }
             else if (gameMode == GAME_COOKIE) {
                 // spin 540 degrees

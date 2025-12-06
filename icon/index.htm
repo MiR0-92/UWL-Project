@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,16 +13,18 @@ window.onload = function() {
     var canvas = document.getElementById('canvas');
     canvas.height = canvas.width = 144;
     var ctx = canvas.getContext('2d');
-    ctx.fillStyle = "#000";
-    //ctx.fillRect(0,0,canvas.width,canvas.height);
-    drawPacmanSprite(ctx, canvas.width/2, canvas.height/2, DIR_RIGHT,Math.PI/6,undefined,9);
+    ctx.fillStyle = "#8B0000"; // Dark Red
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    // Draw Cookie-Eater (frame 1 = open mouth, shake = true, scale = 9)
+    drawCookiemanSprite(ctx, canvas.width/2, canvas.height/2, DIR_RIGHT, 1, true, undefined, 9);
 
     canvas = document.getElementById('canvas2');
     canvas.height = canvas.width = 32;
     var ctx = canvas.getContext('2d');
-    ctx.fillStyle = "#000";
-    //ctx.fillRect(0,0,canvas.width,canvas.height);
-    drawPacmanSprite(ctx, canvas.width/2, canvas.height/2, DIR_RIGHT,Math.PI/6,undefined,1.8);
+    ctx.fillStyle = "#8B0000"; // Dark Red
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    // Draw Cookie-Eater (frame 1 = open mouth, shake = true, scale = 1.8)
+    drawCookiemanSprite(ctx, canvas.width/2, canvas.height/2, DIR_RIGHT, 1, true, undefined, 1.8);
 };
 
 </script>

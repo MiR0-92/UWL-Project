@@ -49,9 +49,21 @@ BaseFruit.prototype = {
     isCollide: function() {
         return Math.abs(pacman.pixel.y - this.pixel.y) <= midTile.y && Math.abs(pacman.pixel.x - this.pixel.x) <= midTile.x;
     },
-    testCollide: function() {
+testCollide: function() {
         if (this.isPresent() && this.isCollide()) {
-            addScore(this.getPoints());
+            var fruit = this.getCurrentFruit(); // Get the fruit object
+            
+            addScore(fruit.points);
+            
+            // NEW: Activate the power-up
+            if (fruit.effect) {
+                pacman.activatePowerup(fruit.effect, fruit.duration);
+            }
+            if (fruit.effect === 'slow') {
+                    // We use 'true' as the second argument to enable looping.
+                    audio.play('slow_power', true);
+                }
+            
             this.reset();
             this.scoreFramesLeft = this.scoreDuration*60;
         }
@@ -62,15 +74,15 @@ BaseFruit.prototype = {
 
 var PacFruit = function() {
     BaseFruit.call(this);
-    this.fruits = [
-        {name:'cherry',     points:100},
-        {name:'strawberry', points:300},
-        {name:'orange',     points:500},
-        {name:'apple',      points:700},
-        {name:'melon',      points:1000},
-        {name:'galaxian',   points:2000},
-        {name:'bell',       points:3000},
-        {name:'key',        points:5000},
+this.fruits = [
+        {name:'cherry',     points:100,  effect: 'speed',      duration: 2 * 60},
+        {name:'strawberry', points:300,  effect: 'speed',      duration: 4 * 60},
+        {name:'orange',     points:500,  effect: 'speed',      duration: 6 * 60},
+        {name:'apple',      points:700,  effect: 'slow',       duration: 4 * 60},
+        {name:'pretzel',    points:700,  effect: 'slow',       duration: 2 * 60},
+        {name:'pear',       points:2000, effect: 'invincible', duration: 2 * 60},
+        {name:'banana',     points:5000, effect: 'invincible', duration: 4 * 60},
+        {name:'banana',     points:5000, effect: 'invincible', duration: 4 * 60}, // Kept your 'key' replacement
     ];
 
     this.order = [
@@ -166,14 +178,14 @@ var PATH_EXIT = 2;
 
 var MsPacFruit = function() {
     BaseFruit.call(this);
-    this.fruits = [
-        {name: 'cherry',     points: 100},
-        {name: 'strawberry', points: 200},
-        {name: 'orange',     points: 500},
-        {name: 'pretzel',    points: 700},
-        {name: 'apple',      points: 1000},
-        {name: 'pear',       points: 2000},
-        {name: 'banana',     points: 5000},
+this.fruits = [
+        {name: 'cherry',     points: 100,  effect: 'speed',      duration: 2 * 60}, // 2 sec @ 60fps
+        {name: 'strawberry', points: 200,  effect: 'speed',      duration: 4 * 60}, // 4 sec
+        {name: 'orange',     points: 500,  effect: 'speed',      duration: 6 * 60}, // 6 sec
+        {name: 'pretzel',    points: 700,  effect: 'slow',       duration: 2 * 60}, // 2 sec
+        {name: 'apple',      points: 1000, effect: 'slow',       duration: 4 * 60}, // 4 sec
+        {name: 'pear',       points: 2000, effect: 'invincible', duration: 2 * 60}, // 2 sec
+        {name: 'banana',     points: 5000, effect: 'invincible', duration: 4 * 60}, // 4 sec
     ];
 
     this.dotLimit1 = 64;
@@ -187,6 +199,8 @@ var MsPacFruit = function() {
     this.savedFrame = {};
     this.savedNumFrames = {};
     this.savedPath = {};
+    this.savedIsStatic = {};
+    this.savedFramesLeft = {};
 };
 
 MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
@@ -228,6 +242,8 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
         this.frame = 0;
         this.numFrames = 0;
         this.path = undefined;
+        this.isStatic = false;
+        this.framesLeft = 0;
     },
 
     initiatePath: function(p) {
@@ -240,6 +256,20 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
         if (this.shouldRandomizeFruit()) {
             this.setCurrentFruit(getRandomInt(0,6));
         }
+        if (map.name === "Pac-Man") {
+            this.isStatic = true;
+            
+            // Spawn exactly where it does in Pac-Man (13, 20)
+            var x = 13;
+            var y = 20;
+            this.pixel.x = tileSize*(1+x)-1;
+            this.pixel.y = tileSize*y + midTile.y;
+            
+            // Set duration to roughly 9 seconds (standard Pac-Man duration)
+            this.framesLeft = 60 * 9; 
+            return;
+        }
+        this.isStatic = false;
         var entrances = map.fruitPaths.entrances;
         var e = entrances[getRandomInt(0,entrances.length-1)];
         this.initiatePath(e.path);
@@ -249,6 +279,9 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
     },
 
     isPresent: function() {
+        if (this.isStatic) {
+            return this.framesLeft > 0;
+        }
         return this.frame < this.numFrames;
     },
 
@@ -273,6 +306,9 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
     })(),
 
     move: function() {
+        if (this.frame % 16 == 0) {
+            audio.play('fruit_bounce');
+        }
         var p = this.path[Math.floor(this.frame/16)]; // get current path frame
         var b = this.bounceFrames[p][this.frame%16]; // get current bounce animation frame
         this.pixel.x += b.dx;
@@ -283,8 +319,24 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
     setNextPath: function() {
         if (this.pathMode == PATH_ENTER) {
             this.pathMode = PATH_PEN;
-            this.initiatePath(this.pen_path);
+// 1. Check if the map has a custom path defined (e.g. from mapgen)
+            var customPath = (map.fruitPaths && map.fruitPaths.pen_path);
+            
+            if (customPath) {
+                this.initiatePath(customPath);
+            } 
+            // 2. Only force "safe mode" for Random Maps.
+            // We removed "Pac-Man" from here so it falls through to the standard loop below.
+            else if (map.name === "Random Map") {
+                this.initiatePath("><><><><><><><><><><><><><><><><><><><><><><><><><><");
+            } 
+            // 3. Standard Maps (Ms. Pac-Man 1-4 AND Pac-Man) use the classic loop.
+            // Since Level 11 (Pac-Man) works with this, we let it use the default behavior.
+            else {
+                this.initiatePath(this.pen_path);
+            }
         }
+        
         else if (this.pathMode == PATH_PEN) {
             this.pathMode = PATH_EXIT;
             var exits = map.fruitPaths.exits;
@@ -298,7 +350,12 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
 
     update: function() {
         BaseFruit.prototype.update.call(this);
-
+        if (this.isStatic) {
+            if (this.framesLeft > 0) {
+                this.framesLeft--;
+            }
+            return; // Do not move if static
+        }
         if (this.isPresent()) {
             this.move();
             if (this.frame == this.numFrames) {
@@ -315,6 +372,8 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
         this.savedFrame[t] =        this.frame;
         this.savedNumFrames[t] =    this.numFrames;
         this.savedPath[t] =         this.path;
+        this.savedIsStatic[t] =     this.isStatic;
+        this.savedFramesLeft[t] =   this.framesLeft;
     },
 
     load: function(t) {
@@ -328,13 +387,16 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
         this.frame =        this.savedFrame[t];
         this.numFrames =    this.savedNumFrames[t]; 
         this.path =         this.savedPath[t];
+        this.isStatic =     this.savedIsStatic[t];
+        this.framesLeft =   this.savedFramesLeft[t];
     },
 });
 
 var fruit;
-var setFruitFromGameMode = (function() {
     var pacfruit = new PacFruit();
     var mspacfruit = new MsPacFruit();
+var setFruitFromGameMode = (function() {
+
     fruit = pacfruit;
     return function() {
         if (gameMode == GAME_PACMAN) {

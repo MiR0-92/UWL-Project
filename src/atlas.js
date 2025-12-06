@@ -246,6 +246,18 @@ var atlas = (function(){
             drawSnail(ctx,x,y, "#FFF");
         }, row, 1);
 
+        // MODIFIED: Add new colored cookies to the atlas
+        drawAtCell(function(x,y) { drawRedCookie(ctx,x,y); },     row, 2);
+        drawAtCell(function(x,y) { drawPinkCookie(ctx,x,y); },    row, 3);
+        drawAtCell(function(x,y) { drawCyanCookie(ctx,x,y); },    row, 4);
+        drawAtCell(function(x,y) { drawOrangeCookie(ctx,x,y); },  row, 5);
+        
+        // MODIFIED: Add new colored flashing cookies to the atlas
+        drawAtCell(function(x,y) { drawRedCookieFlash(ctx,x,y); },    row, 6);
+        drawAtCell(function(x,y) { drawPinkCookieFlash(ctx,x,y); },   row, 7);
+        drawAtCell(function(x,y) { drawCyanCookieFlash(ctx,x,y); },   row, 8);
+        drawAtCell(function(x,y) { drawOrangeCookieFlash(ctx,x,y); }, row, 9);
+
         var drawMsOttoCells = function(row,col,dir) {
             var i;
             for (i=0; i<4; i++) { // frame
@@ -262,16 +274,22 @@ var atlas = (function(){
 
     };
 
-    var copyCellTo = function(row, col, destCtx, x, y,display) {
+    var copyCellTo = function(row, col, destCtx, x, y,scale,display) {
+        // Default scale to 1 if not provided
+        if (scale === undefined) { 
+            scale = 1; 
+        }
         var sx = col*size*renderScale;
         var sy = row*size*renderScale;
         var sw = renderScale*size;
         var sh = renderScale*size;
 
-        var dx = x - size/2;
-        var dy = y - size/2;
-        var dw = size;
-        var dh = size;
+        var dw = size * scale;
+        var dh = size * scale;
+
+        var dx = x - dw/2;
+        var dy = y - dh/2;
+      
 
         if (display) {
             console.log(sx,sy,sw,sh,dw,dy,dw,dh);
@@ -359,14 +377,28 @@ var atlas = (function(){
         copyCellTo(row, col, destCtx, x, y);
     };
 
-    var copyMuppetSprite = function(destCtx,x,y,frame,dirEnum,scared,flash,eyes_only,color) {
+var copyMuppetSprite = function(destCtx,x,y,frame,dirEnum,scared,flash,eyes_only,color) {
         if (scared) {
+            var row = 18; // Row where we added the new cookies
+            var col;
+            
             if (flash) {
-                copyFruitSprite(destCtx,x,y,"cookieface");
+                // Select flashing cookie based on color
+                if (color == blinky.color) col = 6;
+                else if (color == pinky.color) col = 7;
+                else if (color == inky.color) col = 8;
+                else if (color == clyde.color) col = 9;
+                else col = 6; // Default to red flash
             }
             else {
-                copyFruitSprite(destCtx,x,y,"cookie");
+                // Select normal cookie based on color
+                if (color == blinky.color) col = 2;
+                else if (color == pinky.color) col = 3;
+                else if (color == inky.color) col = 4;
+                else if (color == clyde.color) col = 5;
+                else col = 2; // Default to red
             }
+            copyCellTo(row, col, destCtx, x, y);
         }
         else {
             copyGhostSprite(destCtx,x,y,frame,dirEnum,scared,flash,eyes_only,color);
@@ -480,7 +512,7 @@ var atlas = (function(){
         copyCellTo(row,col,destCtx,x,y);
     };
 
-    var copyFruitSprite = function(destCtx,x,y,name) {
+    var copyFruitSprite = function(destCtx,x,y,name,scale) {
         var row = 0;
         var col = {
             "cherry": 0,
@@ -498,7 +530,7 @@ var atlas = (function(){
             "cookieface": 12,
         }[name];
 
-        copyCellTo(row,col,destCtx,x,y);
+        copyCellTo(row,col,destCtx,x,y,scale);
     };
 
     return {

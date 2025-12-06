@@ -23,7 +23,6 @@ var getPointerPos = function(evt) {
 
     return { x: mouseX, y: mouseY };
 };
-
 var Button = function(x,y,w,h,onclick) {
     this.x = x;
     this.y = y;

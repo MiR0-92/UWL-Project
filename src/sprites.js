@@ -1644,13 +1644,13 @@ var drawCookiemanSprite = (function(){
         sy2 = Math.sin(a2)*r2;
     };
 
-    return function(ctx,x,y,dirEnum,frame,shake,rot_angle) {
+    return function(ctx,x,y,dirEnum,frame,shake,rot_angle, scale,centerShift,alpha,color) {
         var angle = 0;
 
         // draw body
         var draw = function(angle) {
             //angle = Math.PI/6*frame;
-            drawPacmanSprite(ctx,x,y,dirEnum,angle,undefined,undefined,undefined,undefined,"#47b8ff",rot_angle);
+            drawPacmanSprite(ctx,x,y,dirEnum,angle,undefined,scale,centerShift,alpha, color || "#47b8ff",rot_angle);
         };
         if (frame == 0) {
             // closed
@@ -1674,6 +1674,11 @@ var drawCookiemanSprite = (function(){
         if (rot_angle) {
             ctx.rotate(rot_angle);
         }
+        // Apply the same scale used for the body to the eyes
+        if (scale == undefined) {
+            scale = 1;
+        }
+        ctx.scale(scale, scale);
 
         // reflect or rotate sprite according to current direction
         var d90 = Math.PI/2;
@@ -2326,6 +2331,44 @@ var drawCookie = function(ctx,x,y) {
     ctx.restore();
 };
 
+var drawColoredCookie = function(ctx,x,y,bodyColor, chipColor) {
+    ctx.save();
+    ctx.translate(x,y);
+
+    // body
+    ctx.beginPath();
+    ctx.arc(0,0,6,0,Math.PI*2);
+    ctx.fillStyle = bodyColor; // Use specified BODY color
+    ctx.fill();
+
+    // chocolate chips
+    var spots = [
+        0,-3,
+        -4,-1,
+        0,2,
+        3,0,
+        3,3,
+         ];
+
+    ctx.fillStyle = chipColor; // Use specified CHIP color
+    var i,len;
+    for (i=0, len=spots.length; i<len; i+=2) {
+        var spot_x = spots[i]; // Renamed to avoid conflict
+        var spot_y = spots[i+1]; // Renamed to avoid conflict
+        ctx.beginPath();
+        ctx.arc(spot_x,spot_y,0.75,0,2*Math.PI);
+        ctx.fill();
+    }
+
+    ctx.restore();
+};
+
+// Specific color functions
+var drawRedCookie = function(ctx,x,y) { drawColoredCookie(ctx,x,y,"#361c02ff", "#ff0000ff"); }; // Brown body, White chips
+var drawPinkCookie = function(ctx,x,y) { drawColoredCookie(ctx,x,y,"#f0cff0ff", "#000000"); }; // Pink body, White chips
+var drawCyanCookie = function(ctx,x,y) { drawColoredCookie(ctx,x,y,"#5f3205ff", "#00FFFF"); }; // Cyan body, White chips
+var drawOrangeCookie = function(ctx,x,y) { drawColoredCookie(ctx,x,y,"#FFB851", "#000000"); }; // Orange body, White chips
+
 var drawCookieFlash = function(ctx,x,y) {
     ctx.save();
     ctx.translate(x,y);
@@ -2360,6 +2403,46 @@ var drawCookieFlash = function(ctx,x,y) {
 
     ctx.restore();
 };
+
+var drawColoredCookieFlash = function(ctx,x,y,color) {
+    ctx.save();
+    ctx.translate(x,y);
+
+    // body
+    ctx.beginPath();
+    ctx.arc(0,0,6,0,Math.PI*2);
+    ctx.fillStyle = "#000"; // Black background
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = color; // Use specified color for border
+    ctx.fill();
+    ctx.stroke();
+
+    // chocolate chips
+    var spots = [
+        0,-3,
+        -4,-1,
+        0,2,
+        3,0,
+        3,3,
+         ];
+
+    ctx.fillStyle = color; // Use specified color for chips
+    var i,len;
+    for (i=0, len=spots.length; i<len; i+=2) {
+        var spot_x = spots[i]; // Renamed
+        var spot_y = spots[i+1]; // Renamed
+        ctx.beginPath();
+        ctx.arc(spot_x,spot_y,0.75,0,2*Math.PI);
+        ctx.fill();
+    }
+
+    ctx.restore();
+};
+
+var drawRedCookieFlash = function(ctx,x,y) { drawColoredCookieFlash(ctx,x,y,"#FF0000"); };
+var drawPinkCookieFlash = function(ctx,x,y) { drawColoredCookieFlash(ctx,x,y,"#FFB8FF"); };
+var drawCyanCookieFlash = function(ctx,x,y) { drawColoredCookieFlash(ctx,x,y,"#00FFFF"); };
+var drawOrangeCookieFlash = function(ctx,x,y) { drawColoredCookieFlash(ctx,x,y,"#FFB851"); };
 
 var getSpriteFuncFromFruitName = function(name) {
     var funcs = {

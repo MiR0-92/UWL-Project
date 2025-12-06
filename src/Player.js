@@ -20,6 +20,12 @@ var Player = function() {
     this.savedStopped = {};
     this.savedEatPauseFramesLeft = {};
 
+    // Power-up timers
+    this.speedBoostTimer = 0;
+    this.invincibleTimer = 0;
+    this.savedSpeedBoostTimer = {};
+    this.savedInvincibleTimer = {};
+
     this.huntDotsThreshold = HuntDotsDistanceThreshold;
 
     this.prevBestRoute = { dirEnum: 0, distance: 0, dots: 0, energizer: 0, value: 0, fruit: 0, targetTiles: []};
@@ -28,10 +34,33 @@ var Player = function() {
 // inherit functions from Actor
 Player.prototype = newChildObject(Actor.prototype);
 
+Player.prototype.activatePowerup = function(effect, duration) {
+if (effect === 'speed') {
+        this.speedBoostTimer = duration;
+        audio.play('speed_power', true); // Play as loop
+        audio.stop('siren'); // Stop siren
+    } else if (effect === 'invincible') {
+        this.invincibleTimer = duration;
+        this.invincible = true; // Turn on invincibility
+        audio.play('invincibility_power', true); // Play as loop
+        audio.stop('siren'); // Stop siren
+    } else if (effect === 'slow') {
+        // Tell all ghosts to slow down
+        for (var i = 0; i < 4; i++) {
+            ghosts[i].slowDown(duration);
+        }
+        audio.play('slow_power'); // Play as a one-shot sound
+    }
+};
+
 Player.prototype.save = function(t) {
     this.savedEatPauseFramesLeft[t] = this.eatPauseFramesLeft;
     this.savedNextDirEnum[t] = this.nextDirEnum;
     this.savedStopped[t] = this.stopped;
+
+    // Save power-up timers
+    this.savedSpeedBoostTimer[t] = this.speedBoostTimer;
+    this.savedInvincibleTimer[t] = this.invincibleTimer;
 
     Actor.prototype.save.call(this,t);
 };
@@ -40,6 +69,11 @@ Player.prototype.load = function(t) {
     this.eatPauseFramesLeft = this.savedEatPauseFramesLeft[t];
     this.setNextDir(this.savedNextDirEnum[t]);
     this.stopped = this.savedStopped[t];
+
+    // Load power-up timers
+    this.speedBoostTimer = this.savedSpeedBoostTimer[t];
+    this.invincibleTimer = this.savedInvincibleTimer[t];
+    this.invincible = (this.invincibleTimer > 0); // Re-apply invincibility
 
     Actor.prototype.load.call(this,t);
 };
@@ -52,6 +86,8 @@ Player.prototype.reset = function() {
     this.inputDirEnum = undefined;
 
     this.eatPauseFramesLeft = 0;   // current # of frames left to pause after eating
+    this.speedBoostTimer = 0;
+    this.invincibleTimer = 0;
 
     // call Actor's reset function to reset to initial position and direction
     Actor.prototype.reset.apply(this);
@@ -66,6 +102,11 @@ Player.prototype.setNextDir = function(nextDirEnum) {
 
 // gets the number of steps to move in this frame
 Player.prototype.getNumSteps = function() {
+    // NEW: Speed boost power-up
+    if (this.speedBoostTimer > 0) {
+        return 2; // Same as turbo
+    }
+
     if (turboMode)
         return 2;
 
@@ -620,10 +661,34 @@ Player.prototype.update = function(j) {
     if (j >= numSteps)
         return;
 
-    // skip frames
-    if (this.eatPauseFramesLeft > 0) {
-        if (j == numSteps-1)
+    // update timers (only on the last step of the frame)
+    if (j == numSteps - 1) { // Only decrement once per game frame
+        if (this.eatPauseFramesLeft > 0) {
             this.eatPauseFramesLeft--;
+        }
+  if (this.speedBoostTimer > 0) {
+            this.speedBoostTimer--;
+            if (this.speedBoostTimer === 0) {
+                audio.stop('speed_power');
+                if (!energizer.isActive()) { // Only restart siren if not frightened
+                    audio.play('siren', true);
+                }
+            }
+        }
+        if (this.invincibleTimer > 0) {
+            this.invincibleTimer--;
+            if (this.invincibleTimer === 0) {
+                this.invincible = false; // Turn off invincibility
+                audio.stop('invincibility_power');
+                if (!energizer.isActive()) { // Only restart siren if not frightened
+                    audio.play('siren', true);
+                }
+            }
+        }
+    }
+
+    // skip frames if paused for eating
+    if (this.eatPauseFramesLeft > 0) {
         return;
     }
 
@@ -631,9 +696,19 @@ Player.prototype.update = function(j) {
     Actor.prototype.update.call(this,j);
 
     // eat something
-    if (map) {
+if (map) {
         var t = map.getTile(this.tile.x, this.tile.y);
         if (t == '.' || t == 'o') {
+
+            // --- START OF MODIFICATION ---
+            if (t == 'o') {
+                audio.play('eat_pill');
+                energizer.activate();
+            }
+            else {
+                audio.play('eat_dot');
+            }
+            // --- END OF MODIFICATION ---
 
             // apply eating drag (unless in turbo mode)
             if (!turboMode) {
@@ -643,10 +718,16 @@ Player.prototype.update = function(j) {
             map.onDotEat(this.tile.x, this.tile.y);
             ghostReleaser.onDotEat();
             fruit.onDotEat();
-            addScore((t=='.') ? 10 : 50);
+            
+            // --- START OF MODIFICATION ---
+            // Calculate points based on level, capped at level 20
+            var levelMultiplier = Math.min(level, 20);
+            var dotPoints = 10 * levelMultiplier;
+            var energizerPoints = 50 * levelMultiplier;
+            addScore((t=='.') ? dotPoints : energizerPoints);
+            // --- END OF MODIFICATION ---
 
-            if (t=='o')
-                energizer.activate();
+            // The 'energizer.activate()' call was moved up
         }
     }
 };
