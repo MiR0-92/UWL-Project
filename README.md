@@ -94,7 +94,7 @@ Album: Falling Into Place (2016)
 
 Tracks used: Mainframe, Byzantium, Headcase, Carrier Wave, Hold
 
-Support: 
+* Support the artist: [HOME on Bandcamp](https://home96.bandcamp.com/) 
 
 Gameplay/Theme Music
 
@@ -102,7 +102,7 @@ Artist: 8-Bit Universe
 
 Track: Popcorn (8-Bit Tribute to Hot Butter)
 
-Support: 
+* Support the artist: [8 Bit Universe on YouTube](https://www.youtube.com/user/8BitUniverseMusic) 
 
 ## 📄 License
 
