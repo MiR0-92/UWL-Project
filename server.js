@@ -1,3 +1,4 @@
+const playerSessions = {};
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -165,6 +166,12 @@ socket.on('join-request', (data) => {
             // 3. Tell *all* controllers about the new status
             io.emit('ghost-status', getPlayerStatus());
         }
+        // +++ NEW CODE: Save the start time for this specific socket ID
+        playerSessions[socket.id] = {
+            startTime: Date.now(),
+            name: data.name // (Optional) helps identify who it was
+        };
+        console.log(`[START] Player ${data.name} joined at ${new Date().toLocaleTimeString()}`);
     });
     // --- END: MODIFIED join-request ---
 
@@ -234,6 +241,23 @@ socket.on('join-request', (data) => {
         console.log(`User disconnected: ${socket.id}`);
         // Call the refactored function
         handleDisconnect(socket);
+        // +++ NEW CODE: Calculate and log the duration
+        if (playerSessions[socket.id]) {
+            const session = playerSessions[socket.id];
+            const endTime = Date.now();
+            
+            // Calculate duration in minutes and seconds
+            const durationMs = endTime - session.startTime;
+            const minutes = Math.floor(durationMs / 60000);
+            const seconds = ((durationMs % 60000) / 1000).toFixed(0);
+
+            console.log(`[END] Player ${session.name} disconnected.`);
+            console.log(`      Disconnect Time: ${new Date().toLocaleTimeString()}`);
+            console.log(`      ACTUAL DURATION: ${minutes}m ${seconds}s`);
+            
+            // Clear the memory
+            delete playerSessions[socket.id];
+        }
     });
 });
 
