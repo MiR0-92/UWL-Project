@@ -1,6 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////////
 // Entry Point
-  var socket = io();
+  var socket = io({
+  transports: ['websocket'],
+  upgrade: false
+})
   // The fix: Listen for 'connect' so it runs every time the server restarts
   socket.on("connect", function () {
     console.log("Connected to server. Identifying as Game Host...");

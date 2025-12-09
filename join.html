@@ -359,7 +359,10 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
+    const socket = io({
+  transports: ['websocket'], // Force WebSocket only, no polling
+  upgrade: false
+});
 
     // --- Page Elements ---
     const lobbyContainer = document.getElementById('lobby-container');

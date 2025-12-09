@@ -1,3 +1,4 @@
+const playerSessions = {};
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -119,7 +120,7 @@ socket.on('join-request', (data) => {
             return;
         }
 
-        // --- START: New Duplicate Name Check ---
+        // Validation 2: Duplicate Name Check
         let nameInUse = false;
         for (const ghostKey in players) {
             if (players[ghostKey] && players[ghostKey].name.toLowerCase() === name.toLowerCase()) {
@@ -131,7 +132,6 @@ socket.on('join-request', (data) => {
             socket.emit('join-error', { message: 'Name is already in use!' });
             return;
         }
-        // --- END: New Duplicate Name Check ---
 
         if (!ghost || !GHOST_NAMES.includes(ghost)) {
             console.log(`Controller ${socket.id} sent invalid join request.`);
@@ -144,26 +144,30 @@ socket.on('join-request', (data) => {
             console.log(`Controller ${socket.id} tried to take ${ghost}, but it's held by ${players[ghost].name}`);
             socket.emit('join-error', { message: `${ghost} is already taken by ${players[ghost].name}!` });
         } else {
-            // Assign ghost to this player
+            // SUCCESSFUL JOIN
             players[ghost] = { id: socket.id, name: name };
-            socket.ghostName = ghost; // Store a reference on the socket for quick lookup
+            socket.ghostName = ghost; 
             
             console.log(`Controller ${socket.id} (${name}) successfully joined as ${ghost}`);
             
             // 1. Tell the controller it was successful
             socket.emit('join-success', { name: name, ghost: ghost });
 
-            // 2. Tell the game a player joined (IF the game is connected)
+            // 2. Tell the game a player joined
             if (gameSocket) {
-                // Send player's name along with the ghost
                 gameSocket.emit('player-join', { ghost: ghost, name: name });
-                
-                // 2a. Tell the game to reset this ghost's score to 0 for the new player
                 gameSocket.emit('reset-ghost-score', ghost);
             }
 
-            // 3. Tell *all* controllers about the new status
+            // 3. Tell all controllers about the new status
             io.emit('ghost-status', getPlayerStatus());
+
+            // +++ MOVED CODE: Only start the timer if they successfully JOIN +++
+            playerSessions[socket.id] = {
+                startTime: Date.now(),
+                name: data.name
+            };
+            console.log(`[START] Player ${data.name} joined at ${new Date().toLocaleTimeString()}`);
         }
     });
     // --- END: MODIFIED join-request ---
@@ -234,6 +238,23 @@ socket.on('join-request', (data) => {
         console.log(`User disconnected: ${socket.id}`);
         // Call the refactored function
         handleDisconnect(socket);
+        // +++ NEW CODE: Calculate and log the duration
+        if (playerSessions[socket.id]) {
+            const session = playerSessions[socket.id];
+            const endTime = Date.now();
+            
+            // Calculate duration in minutes and seconds
+            const durationMs = endTime - session.startTime;
+            const minutes = Math.floor(durationMs / 60000);
+            const seconds = ((durationMs % 60000) / 1000).toFixed(0);
+
+            console.log(`[END] Player ${session.name} disconnected.`);
+            console.log(`      Disconnect Time: ${new Date().toLocaleTimeString()}`);
+            console.log(`      ACTUAL DURATION: ${minutes}m ${seconds}s`);
+            
+            // Clear the memory
+            delete playerSessions[socket.id];
+        }
     });
 });
 
