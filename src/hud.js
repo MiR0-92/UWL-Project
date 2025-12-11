@@ -40,13 +40,26 @@ var hud = (function(){
         // Draw "SCAN:"
         ctx.fillText("SCAN:", qrX + 15, qrY + 5);
 
+        // --- NEW: Draw White Border around QR Code ---
+        var qrSize = 120;
+        var padding = 2;       // Space between QR code and border
+        var borderThick = 2;   // Thickness of the white line
+
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = borderThick;
+        ctx.strokeRect(
+            qrX - 50 - padding, 
+            qrY + 20 - padding, 
+            qrSize + (padding * 2), 
+            qrSize + (padding * 2)
+        );
         // Draw QR Image (Centered below text)
         // We offset x by half the size (55) to center it since drawImage uses top-left
         ctx.drawImage(qrCanvas, qrX - 55, qrY + 15);
 
         // Draw "TO JOIN" (Below Image)
    
-        ctx.fillText("TO JOIN", qrX -10, qrY + 20 + 100 + 20);
+        ctx.fillText("TO JOIN", qrX -10, qrY + 25 + 100 + 20);
         ctx.restore();
 
 

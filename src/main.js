@@ -92,9 +92,6 @@ window.addEventListener("load", function () {
         ghost.scared = false;
         ghost.eaten = false;
 
-        // --- CORRECTED LOGIC HERE ---
-        // 1. We REMOVED the bad line: ghost.mode = GHOST_SCATTER;
-
         // 2. If the reset put the ghost inside the house (Pinky/Inky/Clyde),
         //    force them to leave immediately so the player doesn't wait.
         if (

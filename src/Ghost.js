@@ -416,7 +416,7 @@ Ghost.prototype.steer = function() {
             if (this === blinky && window.player_controls_blinky) {
                 shouldBePlayerControlled = true;
             }
-            // (add else-ifs for pinky, inky, clyde here later) <-- We are doing this now!
+          
             else if (this === pinky && window.player_controls_pinky) {
                 shouldBePlayerControlled = true;
             }
