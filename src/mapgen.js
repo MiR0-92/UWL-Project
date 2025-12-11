@@ -163,7 +163,8 @@ var mapgen = (function(){
             var numFilled = 0;  // current count of total cells filled
             var numGroups;      // current count of cell groups created
             var size;           // current number of cells in the current group
-            var probStopGrowingAtSize = [ // probability of stopping growth at sizes...
+            // A 10% chance to stop at size 2, but 100% chance to stop at size 5.
+            var probStopGrowingAtSize = [ 
                     0,     // size 0
                     0,     // size 1
                     0.10,  // size 2

@@ -3,7 +3,25 @@
   var socket = io({
   transports: ['websocket'],
   upgrade: false
-})
+});
+var rttSamples = [];
+
+// 1. Listen for the server's reply
+socket.on('latency-pong', function(startTime) {
+  var latency = Date.now() - startTime;
+  rttSamples.push(latency);
+  
+  // Calculate Average
+  var sum = rttSamples.reduce(function(a, b) { return a + b; }, 0);
+  var avg = (sum / rttSamples.length).toFixed(2);
+  
+  console.log("LATENCY TEST | Current: " + latency + "ms | Average: " + avg + "ms");
+});
+
+// 2. Send a ping every 2 seconds
+setInterval(function() {
+    socket.emit('latency-ping', Date.now());
+}, 2000);
   // The fix: Listen for 'connect' so it runs every time the server restarts
   socket.on("connect", function () {
     console.log("Connected to server. Identifying as Game Host...");

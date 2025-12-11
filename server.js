@@ -69,6 +69,8 @@ function getPlayerStatus() {
  * @param {Socket} socket - The socket that is disconnecting.
  */
 function handleDisconnect(socket) {
+    const startHandoff = process.hrtime(); // [START TIMER]
+
     console.log(`Handling disconnect for: ${socket.id}`);
 
     if (gameSocket && gameSocket.id === socket.id) {
@@ -76,20 +78,23 @@ function handleDisconnect(socket) {
         gameSocket = null;
     }
 
-    const ghostName = socket.ghostName; // Get ghost name from the socket
-    // Check if player *still* owns the ghost (they might have already left)
+    const ghostName = socket.ghostName; 
     if (ghostName && players[ghostName]) { 
-        // This was a player
         console.log(`Player ${players[ghostName].name} for ${ghostName} disconnected. ${ghostName} is now AI controlled.`);
-        players[ghostName] = null; // Free up the ghost
+        players[ghostName] = null; 
         
-        // 1. Tell the game the player left
         if (gameSocket) {
             gameSocket.emit('player-leave', ghostName);
         }
 
-        // 2. Tell *all* controllers the ghost is now available
         io.emit('ghost-status', getPlayerStatus());
+
+        // [END TIMER] - Calculate execution time
+        const endHandoff = process.hrtime(startHandoff);
+        // Convert [seconds, nanoseconds] to milliseconds
+        const timeInMs = (endHandoff[0] * 1000 + endHandoff[1] / 1e6).toFixed(3);
+        
+        console.log(`[METRIC] AI-Handoff Execution Time: ${timeInMs}ms`); 
     } else {
         console.log('Disconnect was not for an active player or game.');
     }
@@ -103,7 +108,10 @@ io.on('connection', (socket) => {
 
     // Immediately send the current ghost status to the new connection
     socket.emit('ghost-status', getPlayerStatus());
-
+    
+    socket.on("latency-ping", (startTime) => {
+    socket.emit("latency-pong", startTime);
+  });
     socket.on('controller-ready', () => {
         // This is sent when a controller loads, just send them the latest status
         console.log(`Controller ${socket.id} is ready, sending status.`);
@@ -112,6 +120,7 @@ io.on('connection', (socket) => {
     
     // --- MODIFIED: Added Duplicate Name Check ---
 socket.on('join-request', (data) => {
+    
         const { name, ghost } = data;
 
         // Validation 1: Check if player is trying to use a reserved ghost name

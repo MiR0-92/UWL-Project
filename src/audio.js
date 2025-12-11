@@ -119,16 +119,13 @@ var audio = (function() {
                 bufferCache = finishedList;
                 console.log("Audio loaded.");
                 
-                // --- START OF FIX: Play initial music *after* loading ---
-                // This was moved from the end of init() to fix a race condition
                 if (typeof playLevelMusic === 'function' && typeof level === 'number') {
                     playLevelMusic(level);
                 }
-                // --- END OF FIX ---
+
             });
             bufferLoader.load();
             audioUnlocked = true;
-            // --- MOVED --- The playLevelMusic call was here
         },
 
         // Play a sound

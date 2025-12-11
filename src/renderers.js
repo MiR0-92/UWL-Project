@@ -249,11 +249,10 @@ var initRenderer = function(){
         drawCenterPixelSq: function (ctx,px,py,w,rightGrout, downGrout, downRightGrout) {
             ctx.fillRect(px-w/2, py-w/2,w,w);
 
-            // fill "floating point grout" gaps between tiles
+            // artificially extend width/height by 1 pixel (gap) to cover seams
             var gap = 1;
             if (rightGrout) ctx.fillRect(px-w/2, py-w/2,w+gap,w);
             if (downGrout) ctx.fillRect(px-w/2, py-w/2,w,w+gap);
-            //if (rightGrout && downGrout && downRightGrout) ctx.fillRect(px-w/2, py-w/2,w+gap,w+gap);
         },
 
         // this flag is used to flash the level upon its successful completion
