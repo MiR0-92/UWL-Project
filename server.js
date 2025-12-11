@@ -69,7 +69,7 @@ function getPlayerStatus() {
  * @param {Socket} socket - The socket that is disconnecting.
  */
 function handleDisconnect(socket) {
-    const startHandoff = process.hrtime(); // [START TIMER]
+    const startHandoff = process.hrtime(); 
 
     console.log(`Handling disconnect for: ${socket.id}`);
 
@@ -79,24 +79,24 @@ function handleDisconnect(socket) {
     }
 
     const ghostName = socket.ghostName; 
-    if (ghostName && players[ghostName]) { 
+    
+    // [CRITICAL FIX]: Check if the disconnecting socket matches the CURRENT owner.
+    // If you rejoined, 'players[ghostName].id' will be your NEW ID, 
+    // so this block will be skipped for the old "Zombie" socket.
+    if (ghostName && players[ghostName] && players[ghostName].id === socket.id) { 
         console.log(`Player ${players[ghostName].name} for ${ghostName} disconnected. ${ghostName} is now AI controlled.`);
         players[ghostName] = null; 
         
         if (gameSocket) {
             gameSocket.emit('player-leave', ghostName);
         }
-
         io.emit('ghost-status', getPlayerStatus());
 
-        // [END TIMER] - Calculate execution time
         const endHandoff = process.hrtime(startHandoff);
-        // Convert [seconds, nanoseconds] to milliseconds
         const timeInMs = (endHandoff[0] * 1000 + endHandoff[1] / 1e6).toFixed(3);
-        
         console.log(`[METRIC] AI-Handoff Execution Time: ${timeInMs}ms`); 
     } else {
-        console.log('Disconnect was not for an active player or game.');
+        console.log('Disconnect was not for an active player owner (or already reconnected).');
     }
 }
 // --- END: Refactored Disconnect Logic ---
@@ -120,7 +120,8 @@ io.on('connection', (socket) => {
     
     // --- MODIFIED: Added Duplicate Name Check ---
 socket.on('join-request', (data) => {
-    
+        // [METRIC] Latency Ping-Pong (Ensure this is at the top level in server.js, not here, but keeping logic clean)
+        
         const { name, ghost } = data;
 
         // Validation 1: Check if player is trying to use a reserved ghost name
@@ -130,11 +131,14 @@ socket.on('join-request', (data) => {
         }
 
         // Validation 2: Duplicate Name Check
+        // (Allows the name ONLY if you are reconnecting to your own ghost)
         let nameInUse = false;
         for (const ghostKey in players) {
             if (players[ghostKey] && players[ghostKey].name.toLowerCase() === name.toLowerCase()) {
-                nameInUse = true;
-                break;
+                if (ghostKey !== ghost) {
+                    nameInUse = true;
+                    break;
+                }
             }
         }
         if (nameInUse) {
@@ -142,42 +146,66 @@ socket.on('join-request', (data) => {
             return;
         }
 
+        // Validation 3: Invalid Ghost Selection
         if (!ghost || !GHOST_NAMES.includes(ghost)) {
             console.log(`Controller ${socket.id} sent invalid join request.`);
             socket.emit('join-error', { message: 'Invalid ghost selected.' });
             return;
         }
 
+        // Validation 4: Ghost Occupied Check (With Reconnect Logic)
         if (players[ghost]) {
-            // Ghost is already taken
-            console.log(`Controller ${socket.id} tried to take ${ghost}, but it's held by ${players[ghost].name}`);
-            socket.emit('join-error', { message: `${ghost} is already taken by ${players[ghost].name}!` });
-        } else {
-            // SUCCESSFUL JOIN
-            players[ghost] = { id: socket.id, name: name };
-            socket.ghostName = ghost; 
-            
-            console.log(`Controller ${socket.id} (${name}) successfully joined as ${ghost}`);
-            
-            // 1. Tell the controller it was successful
-            socket.emit('join-success', { name: name, ghost: ghost });
-
-            // 2. Tell the game a player joined
-            if (gameSocket) {
-                gameSocket.emit('player-join', { ghost: ghost, name: name });
-                gameSocket.emit('reset-ghost-score', ghost);
+            // If the name DOES NOT match, it's a stranger trying to steal the seat.
+            if (players[ghost].name.toLowerCase() !== name.toLowerCase()) {
+                console.log(`Controller ${socket.id} tried to take ${ghost}, but it's held by ${players[ghost].name}`);
+                socket.emit('join-error', { message: `${ghost} is already taken by ${players[ghost].name}!` });
+                return;
             }
-
-            // 3. Tell all controllers about the new status
-            io.emit('ghost-status', getPlayerStatus());
-
-            // +++ MOVED CODE: Only start the timer if they successfully JOIN +++
-            playerSessions[socket.id] = {
-                startTime: Date.now(),
-                name: data.name
-            };
-            console.log(`[START] Player ${data.name} joined at ${new Date().toLocaleTimeString()}`);
+            // If name matches, we simply proceed below (Reconnect).
         }
+
+        // --- SUCCESSFUL JOIN / RECONNECT LOGIC ---
+
+        // 1. Handle Reconnect vs Fresh Join
+        if (players[ghost]) {
+            // RECONNECT: Update ID *before* kicking the old socket 
+            // (This stops handleDisconnect from resetting the AI)
+            const oldSocketId = players[ghost].id;
+            players[ghost].id = socket.id;
+            socket.ghostName = ghost;
+            
+            console.log(`Player ${name} is reconnecting to ${ghost}. Kicking zombie socket...`);
+            
+            const oldSocket = io.sockets.sockets.get(oldSocketId);
+            if (oldSocket) {
+                oldSocket.disconnect(true);
+            }
+        } else {
+            // FRESH JOIN
+            players[ghost] = { id: socket.id, name: name };
+            socket.ghostName = ghost;
+        }
+
+        console.log(`Controller ${socket.id} (${name}) successfully joined as ${ghost}`);
+
+        // 2. Tell the controller it was successful
+        socket.emit('join-success', { name: name, ghost: ghost });
+
+        // 3. Tell the game a player joined
+        if (gameSocket) {
+            gameSocket.emit('player-join', { ghost: ghost, name: name });
+            gameSocket.emit('reset-ghost-score', ghost);
+        }
+
+        // 4. Tell all controllers about the new status
+        io.emit('ghost-status', getPlayerStatus());
+
+        // 5. Start Session Timer
+        playerSessions[socket.id] = {
+            startTime: Date.now(),
+            name: data.name
+        };
+        console.log(`[START] Player ${data.name} joined at ${new Date().toLocaleTimeString()}`);
     });
     // --- END: MODIFIED join-request ---
 
