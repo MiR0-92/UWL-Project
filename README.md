@@ -4,7 +4,7 @@
 
 I did not create the core engine of this game. This project is built upon the existing game and AI framework created by others.
 
-You can try Cookie-Eater by yourself at: https://cookie-eater-uk-1ccce0fd7ba7.herokuapp.com/
+Video Presentation: https://www.youtube.com/watch?v=ZHbA5nLP3YA
 
 Make sure you have your phone with you.
 
